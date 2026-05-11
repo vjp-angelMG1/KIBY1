@@ -55,6 +55,7 @@
 
         .btn-primary { background-color: var(--primary-color); color: white; box-shadow: var(--shadow-sm); }
         .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-primary:disabled { background-color: #a5b4fc; cursor: not-allowed; transform: none; }
 
         .btn-secondary { background-color: white; color: var(--text-main); border: 1px solid #e2e8f0; }
         .btn-secondary:hover { background-color: #f1f5f9; }
@@ -63,28 +64,6 @@
         .btn-danger:hover { background-color: #fecaca; }
 
         .btn-full { width: 100%; }
-
-        /* Switcher de Roles específico */
-        .role-switcher {
-            display: flex;
-            background: #e2e8f0;
-            padding: 4px;
-            border-radius: 8px;
-            margin-right: 1rem;
-        }
-        .role-btn {
-            padding: 0.4rem 1rem;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--secondary-color);
-            background: transparent;
-        }
-        .role-btn.active {
-            background: white;
-            color: var(--primary-color);
-            box-shadow: var(--shadow-sm);
-        }
 
         input, textarea, select {
             width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 8px;
@@ -117,6 +96,20 @@
         }
         .nav-link:hover, .nav-link.active { color: var(--primary-color); background-color: #eef2ff; }
 
+        /* Estilo para los nuevos items dinámicos del menú */
+        .nav-dynamic-item {
+            display: flex; align-items: center; gap: 0.4rem;
+            background: #f0fdf4; color: #166534;
+            border: 1px solid #bbf7d0;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            animation: fadeIn 0.5s ease;
+        }
+        .nav-dynamic-item:hover { background: #dcfce7; }
+
         .main-container { max-width: 1200px; margin: 0 auto; padding: 2rem; width: 100%; flex: 1; }
 
         .section-view { display: none; animation: fadeIn 0.4s ease; }
@@ -134,9 +127,10 @@
         .filters-bar select { margin-bottom: 0; width: 180px; }
 
         /* =========================================
-           GRID DE MÓDULOS
+           GRID DE MÓDULOS Y CARDS
            ========================================= */
         .modules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; }
+        .coupons-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 2rem; }
 
         .module-card {
             background: var(--card-bg); border-radius: var(--radius); overflow: hidden;
@@ -158,6 +152,33 @@
             display: flex; justify-content: space-between; align-items: center; 
             padding-top: 1rem; border-top: 1px solid #f1f5f9; margin-top: auto;
         }
+
+        /* =========================================
+           CARDS DE CUPONES (NUEVO DISEÑO)
+           ========================================= */
+        .coupon-card {
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            border: 1px solid #f1f5f9;
+            display: flex; flex-direction: column;
+        }
+        .coupon-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+
+        .coupon-img { width: 100%; height: 140px; object-fit: cover; }
+        
+        .coupon-body { padding: 1.5rem; text-align: center; background: white; position: relative; }
+        .coupon-body::before {
+            content: ""; position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+            width: 20px; height: 20px; background: var(--bg-color); border-radius: 50%;
+        }
+        .coupon-code { 
+            font-size: 1.1rem; font-weight: 800; color: var(--primary-color); 
+            font-family: 'Courier New', monospace; letter-spacing: 1px; margin-bottom: 0.5rem; 
+        }
+        .coupon-discount { font-size: 2rem; font-weight: 900; color: var(--text-main); line-height: 1; }
 
         .price-tag { font-size: 1.2rem; font-weight: 800; color: var(--text-main); }
         .price-free { color: var(--success); font-size: 1rem; font-weight: 700; }
@@ -210,23 +231,17 @@
             Kiby
         </div>
         <nav class="nav-links">
-            
-            <!-- Selector de Roles (NUEVO) -->
-            <div id="role-switcher" class="role-switcher">
-                <button class="role-btn" onclick="app.setRole('user')" id="btn-role-user">Modo Usuario</button>
-                <button class="role-btn" onclick="app.setRole('admin')" id="btn-role-admin">Modo Admin</button>
-            </div>
-
-            <!-- Menú Común -->
+            <!-- Links Estáticos -->
             <a class="nav-link active" id="nav-catalog" onclick="app.router('catalog')">Catálogo</a>
+            <a class="nav-link" id="nav-coupons" onclick="app.router('coupons')">Mis Cupones</a>
             
-            <!-- Menú Usuario -->
-            <a class="nav-link hidden" id="nav-my-modules" onclick="app.router('my-modules')">Mis Módulos</a>
-            <a class="nav-link hidden" id="nav-coupons" onclick="app.router('coupons')">Mis Cupones</a>
+            <div style="width: 1px; height: 20px; background: #e2e8f0; margin: 0 0.5rem;"></div>
             
-            <!-- Menú Admin -->
-            <a class="nav-link hidden" id="nav-admin" onclick="app.router('admin')">Gestión Módulos</a>
-
+            <a class="nav-link" id="nav-admin" onclick="app.router('admin')">Admin Panel</a>
+            
+            <!-- Links Dinámicos (Se llenan con JS al comprar) -->
+            <div id="dynamic-menu-container" class="nav-links" style="gap: 0.5rem; margin-left: 1rem;"></div>
+            
             <div style="width: 1px; height: 20px; background: #e2e8f0; margin: 0 0.5rem;"></div>
             
             <a onclick="app.logout()" class="nav-link" style="color: var(--danger);">Salir</a>
@@ -247,7 +262,7 @@
                 </form>
                 <p id="error-msg" style="color: var(--danger); font-size: 0.9rem; margin-top: 1rem;"></p>
                 <div style="margin-top: 1.5rem; font-size: 0.8rem; color: #94a3b8; text-align: left; background: #f1f5f9; padding: 10px; border-radius: 6px;">
-                    <strong>Única Cuenta Permitida:</strong><br>
+                    <strong>Cuenta Única:</strong><br>
                     Email: admin@kiby.com<br>
                     Pass: 123456
                 </div>
@@ -283,25 +298,14 @@
             <div id="modules-container" class="modules-grid"></div>
         </section>
 
-        <!-- MIS MÓDULOS -->
-        <section id="my-modules-view" class="section-view">
-            <h1>Mis Módulos Activos</h1>
-            <p style="color: var(--text-light); margin-bottom: 2rem;">Contenido al que tienes acceso completo</p>
-            <div id="purchased-container" class="modules-grid"></div>
-        </section>
-
-        <!-- GESTIÓN DE CUPONES -->
+        <!-- GESTIÓN DE CUPONES (AHORA CON FOTOS) -->
         <section id="coupons-view" class="section-view">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <h1>Mis Cupones</h1>
-                <button class="btn btn-primary" onclick="userActions.openCouponModal()">+ Crear Cupón</button>
+                <h1>Galería de Cupones</h1>
+                <button class="btn btn-primary" onclick="userActions.openCouponModal()">+ Crear Nuevo Cupón</button>
             </div>
-            <div class="table-container">
-                <table>
-                    <thead><tr><th>Código</th><th>Descuento</th><th>Estado</th></tr></thead>
-                    <tbody id="coupons-table-body"></tbody>
-                </table>
-            </div>
+            <!-- CAMBIADO DE TABLA A GRID DE CARDS -->
+            <div id="coupons-container" class="coupons-grid"></div>
         </section>
 
         <!-- ADMIN CRUD -->
@@ -318,7 +322,15 @@
             </div>
         </section>
 
-        <!-- MODAL DETALLE -->
+        <!-- VISTA DE CONTENIDO (Para módulos comprados) -->
+        <section id="content-view" class="section-view">
+            <button class="btn btn-secondary" onclick="app.router('catalog')" style="margin-bottom:1rem;">&larr; Volver</button>
+            <div id="content-player" style="background:white; padding:2rem; border-radius:12px; min-height:400px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+                <!-- Contenido dinámico aquí -->
+            </div>
+        </section>
+
+        <!-- MODAL DETALLE / COMPRA -->
         <div id="detail-modal" class="modal-backdrop">
             <div class="modal">
                 <div id="detail-content"></div>
@@ -359,14 +371,18 @@
             </div>
         </div>
 
-        <!-- MODAL CUPON -->
+        <!-- MODAL CUPON (AHORA CON INPUT DE IMAGEN) -->
         <div id="coupon-modal" class="modal-backdrop">
             <div class="modal">
-                <h3>Generar Cupón</h3>
-                <p style="color: var(--text-light); margin-bottom: 1rem; font-size: 0.9rem;">Crea un código para compartir o usar.</p>
+                <h3>Crear Nuevo Cupón</h3>
+                <p style="color: var(--text-light); margin-bottom: 1rem; font-size: 0.9rem;">Diseña tu cupón visual.</p>
                 <form id="coupon-form">
                     <input type="text" id="coupon-code" placeholder="Código (ej: VERANO20)" required>
                     <input type="number" id="coupon-discount" placeholder="Descuento (%)" min="1" max="100" required>
+                    
+                    <label style="font-size: 0.85rem; font-weight: 600;">URL de Imagen (Opcional)</label>
+                    <input type="url" id="coupon-img" placeholder="Deja vacío para imagen aleatoria">
+                    
                     <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
                         <button type="button" class="btn btn-secondary" onclick="userActions.closeCouponModal()">Cancelar</button>
                         <button type="submit" class="btn btn-primary">Generar</button>
@@ -417,7 +433,6 @@
         };
 
         const UserStore = {
-            // Eliminamos lógica de email para rol, ahora se maneja en 'app.role'
             getPurchases: () => JSON.parse(localStorage.getItem('kiby_purchases')) || [],
             isPurchased: (id) => UserStore.getPurchases().includes(id),
             addPurchase: (id) => {
@@ -425,9 +440,9 @@
                 if(!list.includes(id)) { list.push(id); localStorage.setItem('kiby_purchases', JSON.stringify(list)); }
             },
             getCoupons: () => JSON.parse(localStorage.getItem('kiby_coupons')) || [],
-            addCoupon: (code, discount) => {
+            addCoupon: (code, discount, img) => {
                 const list = UserStore.getCoupons();
-                list.push({ code, discount, active: true });
+                list.push({ code, discount, img, active: true });
                 localStorage.setItem('kiby_coupons', JSON.stringify(list));
             }
         };
@@ -445,20 +460,14 @@
                 document.querySelectorAll('.section-view').forEach(v => v.classList.remove('active'));
                 document.getElementById(`${id}-view`).classList.add('active');
                 document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-                const link = document.querySelector(`[onclick*="${id}"]`);
+                const link = document.querySelector(`.nav-link[onclick*="${id}"]`);
                 if(link) link.classList.add('active');
             }
         };
 
         const app = {
-            // Estado del rol: por defecto user, pero se puede cambiar
-            role: localStorage.getItem('kiby_demo_role') || 'user',
-
             init: () => {
                 if(!localStorage.getItem('kiby_modules')) DataService.saveModules(DEFAULT_MODULES);
-                
-                // Inicializar visibilidad del switcher
-                app.updateRoleUI();
                 
                 document.getElementById('login-form').addEventListener('submit', async (e) => {
                     e.preventDefault();
@@ -472,43 +481,21 @@
 
             logout: () => { signOut(auth).then(() => window.location.reload()); },
 
-            // NUEVA FUNCIÓN: CAMBIAR ROL
-            setRole: (newRole) => {
-                app.role = newRole;
-                localStorage.setItem('kiby_demo_role', newRole);
-                app.updateRoleUI();
-                
-                // Redirigir a la vista adecuada según el nuevo rol
-                if(newRole === 'admin') {
-                    app.router('admin');
-                    UI.toast('Modo Administrador Activado');
+            renderDynamicMenu: () => {
+                const container = document.getElementById('dynamic-menu-container');
+                const myIds = UserStore.getPurchases();
+                const allMods = DataService.getModules();
+                const myMods = allMods.filter(m => myIds.includes(m.id));
+
+                if (myMods.length > 0) {
+                    container.innerHTML = myMods.map(m => `
+                        <div class="nav-dynamic-item" onclick="app.openContent(${m.id})">
+                            <span>${m.title}</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        </div>
+                    `).join('');
                 } else {
-                    app.router('catalog');
-                    UI.toast('Modo Usuario Activado');
-                }
-            },
-
-            updateRoleUI: () => {
-                const btnUser = document.getElementById('btn-role-user');
-                const btnAdmin = document.getElementById('btn-role-admin');
-
-                if(app.role === 'admin') {
-                    btnUser.classList.remove('active');
-                    btnAdmin.classList.add('active');
-                    
-                    // Ocultar menús usuario, mostrar menú admin
-                    document.getElementById('nav-my-modules').classList.add('hidden');
-                    document.getElementById('nav-coupons').classList.add('hidden');
-                    document.getElementById('nav-admin').classList.remove('hidden');
-
-                } else {
-                    btnUser.classList.add('active');
-                    btnAdmin.classList.remove('active');
-                    
-                    // Mostrar menús usuario, ocultar menú admin
-                    document.getElementById('nav-my-modules').classList.remove('hidden');
-                    document.getElementById('nav-coupons').classList.remove('hidden');
-                    document.getElementById('nav-admin').classList.add('hidden');
+                    container.innerHTML = '';
                 }
             },
 
@@ -516,7 +503,6 @@
                 if(!auth.currentUser) return;
                 UI.showView(view);
                 if(view === 'catalog') app.renderCatalog();
-                if(view === 'my-modules') app.renderMyModules();
                 if(view === 'coupons') userActions.renderCoupons();
                 if(view === 'admin') adminActions.renderTable();
             },
@@ -537,7 +523,7 @@
                     const isOwned = UserStore.isPurchased(m.id);
                     
                     let btnHtml = '';
-                    if(isOwned) btnHtml = `<button class="btn btn-secondary" disabled>Inscrito</button>`;
+                    if(isOwned) btnHtml = `<button class="btn btn-secondary" disabled>Adquirido</button>`;
                     else btnHtml = `<button class="btn btn-primary" onclick="app.openDetail(${m.id})">${isFree ? 'Unirse Gratis' : 'Ver Detalle'}</button>`;
 
                     return `
@@ -558,29 +544,6 @@
                 }).join('');
             },
 
-            renderMyModules: () => {
-                const container = document.getElementById('purchased-container');
-                const myIds = UserStore.getPurchases();
-                const allMods = DataService.getModules();
-                const myMods = allMods.filter(m => myIds.includes(m.id));
-
-                if(myMods.length === 0) {
-                    container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 2rem; background: #f1f5f9; border-radius: 12px;">Aún no tienes módulos activos. Ve al catálogo.</div>`;
-                    return;
-                }
-
-                container.innerHTML = myMods.map(m => `
-                    <div class="module-card">
-                        <img src="${m.img}" class="card-image">
-                        <div class="card-content">
-                            <div class="card-title">${m.title}</div>
-                            <div class="card-desc">${m.desc}</div>
-                            <button class="btn btn-primary btn-full" style="margin-top:1rem;" onclick="UI.toast('Iniciando: ${m.title}')">VER CONTENIDO</button>
-                        </div>
-                    </div>
-                `).join('');
-            },
-
             openDetail: (id) => {
                 const m = DataService.getModules().find(x => x.id == id);
                 const modal = document.getElementById('detail-modal');
@@ -598,7 +561,7 @@
                     
                     <div style="display:flex; gap:0.5rem;">
                         <button class="btn btn-secondary" onclick="document.getElementById('detail-modal').classList.remove('open')">Cancelar</button>
-                        <button class="btn btn-primary" onclick="app.processPurchase(${m.id})">
+                        <button class="btn btn-primary" id="btn-buy-action" onclick="app.processPurchase(${m.id})">
                             ${isFree ? 'Confirmar Inscripción' : 'Comprar Ahora'}
                         </button>
                     </div>
@@ -608,14 +571,50 @@
 
             processPurchase: (id) => {
                 const m = DataService.getModules().find(x => x.id == id);
-                if(m.price > 0) {
-                    const confirmed = confirm(`¿Proceder al pago de ${m.price}€ por "${m.title}"?\n\n(Simulación de tarjeta)`);
-                    if(!confirmed) return;
-                }
-                UserStore.addPurchase(id);
-                document.getElementById('detail-modal').classList.remove('open');
-                UI.toast('¡Inscripción realizada con éxito!');
-                app.renderCatalog();
+                const btn = document.getElementById('btn-buy-action');
+
+                // SIMULACIÓN DE CARGA DE PAGO
+                const originalText = btn.innerText;
+                btn.disabled = true;
+                btn.innerText = "Procesando...";
+
+                setTimeout(() => {
+                    if(m.price > 0) {
+                        const confirmed = confirm(`¿Confirmar pago de ${m.price}€ por "${m.title}"?`);
+                        if(!confirmed) {
+                            btn.disabled = false;
+                            btn.innerText = originalText;
+                            return; // Cancelar
+                        }
+                    }
+
+                    // ÉXITO
+                    UserStore.addPurchase(id);
+                    document.getElementById('detail-modal').classList.remove('open');
+                    UI.toast('¡Pago realizado e inscripción exitosa!');
+                    
+                    // ACTUALIZAR UI
+                    app.renderCatalog();
+                    app.renderDynamicMenu();
+                }, 1500);
+            },
+
+            openContent: (id) => {
+                const m = DataService.getModules().find(x => x.id == id);
+                if(!m) return;
+
+                document.getElementById('content-player').innerHTML = `
+                    <img src="${m.img}" style="width:100px; height:100px; border-radius:50%; object-fit:cover; margin-bottom:1rem; border: 4px solid white; box-shadow: var(--shadow-lg);">
+                    <h1 style="margin-bottom:0.5rem;">${m.title}</h1>
+                    <p style="color:var(--text-light); max-width:600px; margin-bottom:2rem;">Accediendo al contenido completo del módulo.</p>
+                    <div style="background:#f1f5f9; padding:1rem; border-radius:8px; width:100%; max-width:400px; height:200px; display:flex; align-items:center; justify-content:center; color:#94a3b8;">
+                        [ Video Player Simulado ]
+                    </div>
+                    <div style="margin-top:2rem; width:100%;">
+                        <button class="btn btn-primary" onclick="UI.toast('Reproduciendo lección 1...')">▶ Reproducir Lección 1</button>
+                    </div>
+                `;
+                UI.showView('content');
             }
         };
 
@@ -674,15 +673,24 @@
 
         const userActions = {
             renderCoupons: () => {
-                const tbody = document.getElementById('coupons-table-body');
+                const container = document.getElementById('coupons-container');
                 const coupons = UserStore.getCoupons();
-                tbody.innerHTML = coupons.length ? coupons.map(c => `
-                    <tr>
-                        <td style="font-family:monospace; font-weight:bold;">${c.code}</td>
-                        <td>${c.discount}%</td>
-                        <td><span class="badge badge-price">Activo</span></td>
-                    </tr>
-                `).join('') : '<tr><td colspan="3" style="text-align:center">No hay cupones creados.</td></tr>';
+                
+                // Renderizamos Cards en lugar de Tabla
+                if (coupons.length === 0) {
+                    container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 2rem; background: #f1f5f9; border-radius: 12px;">No has creado cupones aún.</div>`;
+                } else {
+                    container.innerHTML = coupons.map(c => `
+                        <div class="coupon-card">
+                            <img src="${c.img}" class="coupon-img">
+                            <div class="coupon-body">
+                                <div class="coupon-code">${c.code}</div>
+                                <div class="coupon-discount">-${c.discount}%</div>
+                                <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--success); font-weight: bold;">ACTIVO</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
             },
             openCouponModal: () => {
                 document.getElementById('coupon-form').reset();
@@ -693,10 +701,17 @@
                 e.preventDefault();
                 const code = document.getElementById('coupon-code').value;
                 const disc = document.getElementById('coupon-discount').value;
-                UserStore.addCoupon(code, disc);
+                
+                // Si no hay imagen, generamos una aleatoria usando el código como seed
+                let imgUrl = document.getElementById('coupon-img').value;
+                if(!imgUrl) {
+                    imgUrl = `https://picsum.photos/seed/${code}/300/200`;
+                }
+                
+                UserStore.addCoupon(code, disc, imgUrl);
                 userActions.closeCouponModal();
                 userActions.renderCoupons();
-                UI.toast(`Cupón ${code} creado con éxito`);
+                UI.toast(`Cupón ${code} creado con foto`);
             }
         };
         document.getElementById('coupon-form').addEventListener('submit', userActions.createCoupon);
@@ -708,9 +723,7 @@
             const errorMsg = document.getElementById('error-msg');
 
             if (user) {
-                // ========================================
                 // REGLA: UNICO USUARIO
-                // ========================================
                 const uniqueUser = 'admin@kiby.com';
                 
                 if (user.email !== uniqueUser) {
@@ -719,15 +732,11 @@
                     errorMsg.style.display = 'block';
                     return; 
                 }
-                // ========================================
 
                 header.classList.remove('hidden');
-                // Aplicar el rol guardado en localStorage
-                app.updateRoleUI();
-                
-                // Cargar vista inicial según el rol actual
-                if(app.role === 'admin') app.router('admin');
-                else app.router('catalog');
+                app.router('catalog');
+                app.renderDynamicMenu();
+                UI.toast('Bienvenido al sistema');
 
             } else {
                 header.classList.add('hidden');
