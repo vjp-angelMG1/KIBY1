@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kiby - Plataforma de Módulos</title>
     <style>
-        /* =========================================
-           VARIABLES Y RESET
-           ========================================= */
+
         :root {
-            --primary-color: #4f46e5; /* Indigo */
+            --primary-color: #4f46e5;
             --primary-hover: #4338ca;
             --secondary-color: #64748b;
             --bg-color: #f8fafc;
@@ -40,9 +38,6 @@
             flex-direction: column;
         }
 
-        /* =========================================
-           COMPONENTES UI
-           ========================================= */
         button {
             cursor: pointer;
             border: none;
@@ -104,9 +99,6 @@
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
 
-        /* =========================================
-           LAYOUT GENERAL
-           ========================================= */
         header {
             background: var(--card-bg);
             padding: 1rem 2rem;
@@ -156,7 +148,7 @@
         }
 
         .section-view {
-            display: none; /* Oculto por defecto */
+            display: none; 
             animation: fadeIn 0.4s ease-in-out;
         }
         .section-view.active { display: block; }
@@ -165,10 +157,6 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        /* =========================================
-           LOGIN
-           ========================================= */
         .login-wrapper {
             display: flex;
             justify-content: center;
@@ -189,9 +177,6 @@
         .login-card h2 { margin-bottom: 0.5rem; color: var(--text-main); }
         .login-card p { color: var(--text-light); margin-bottom: 2rem; }
 
-        /* =========================================
-           DASHBOARD (GRID DE MÓDULOS)
-           ========================================= */
         .dashboard-header {
             display: flex;
             justify-content: space-between;
@@ -241,9 +226,6 @@
         .card-desc { color: var(--text-light); font-size: 0.9rem; line-height: 1.5; flex: 1; }
         .card-footer { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
 
-        /* =========================================
-           DETALLE DE MÓDULO
-           ========================================= */
         .detail-header {
             position: relative;
             height: 250px;
@@ -261,9 +243,6 @@
         .detail-overlay h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
         .detail-content { background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow-sm); }
 
-        /* =========================================
-           ADMIN CRUD
-           ========================================= */
         .admin-toolbar {
             display: flex;
             justify-content: flex-end;
@@ -301,9 +280,6 @@
             color: #166534;
         }
 
-        /* =========================================
-           MODAL
-           ========================================= */
         .modal-backdrop {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5);
@@ -326,9 +302,6 @@
         .modal-header { display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
         .modal-footer { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
 
-        /* =========================================
-           TOAST NOTIFICATIONS
-           ========================================= */
         #toast-container {
             position: fixed; bottom: 20px; right: 20px;
             display: flex; flex-direction: column; gap: 10px;
@@ -349,14 +322,12 @@
             to { transform: translateX(0); opacity: 1; }
         }
 
-        /* Helpers */
         .hidden { display: none !important; }
         .text-right { text-align: right; }
     </style>
 </head>
 <body>
 
-    <!-- NAV BAR (Solo visible si logueado) -->
     <header id="app-header" class="hidden">
         <div class="logo">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
@@ -369,10 +340,8 @@
         </nav>
     </header>
 
-    <!-- MAIN CONTAINER -->
     <div class="main-container">
 
-        <!-- VISTA LOGIN -->
         <section id="login-view" class="section-view active">
             <div class="login-wrapper">
                 <div class="login-card">
@@ -388,37 +357,32 @@
             </div>
         </section>
 
-        <!-- VISTA DASHBOARD (LISTA DE MÓDULOS) -->
         <section id="dashboard-view" class="section-view">
             <div class="dashboard-header">
                 <div>
                     <h1>Catálogo de Módulos</h1>
                     <p style="color: var(--text-light)">Selecciona un módulo para comenzar a aprender</p>
                 </div>
-                <!-- Botón refrescar -->
+
                 <button onclick="app.renderDashboard()" class="btn btn-secondary btn-icon" title="Actualizar">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
                 </button>
             </div>
 
             <div id="modules-container" class="modules-grid">
-                <!-- Se llena con JS -->
             </div>
             <div id="loading-dashboard" style="text-align: center; color: var(--text-light);">Cargando módulos...</div>
         </section>
 
-        <!-- VISTA DETALLE -->
         <section id="detail-view" class="section-view">
             <button onclick="app.router('dashboard')" class="btn btn-secondary" style="margin-bottom: 1rem;">
                 &larr; Volver al listado
             </button>
             
             <div id="detail-content-wrapper">
-                <!-- Se llena con JS -->
             </div>
         </section>
 
-        <!-- VISTA ADMIN (CRUD) -->
         <section id="admin-view" class="section-view">
             <div class="dashboard-header">
                 <div>
@@ -443,7 +407,7 @@
                         </tr>
                     </thead>
                     <tbody id="admin-table-body">
-                        <!-- JS -->
+
                     </tbody>
                 </table>
             </div>
@@ -451,7 +415,7 @@
 
     </div>
 
-    <!-- MODAL PARA CREAR/EDITAR -->
+
     <div id="crud-modal" class="modal-backdrop">
         <div class="modal">
             <div class="modal-header">
@@ -478,10 +442,8 @@
         </div>
     </div>
 
-    <!-- TOAST CONTAINER -->
     <div id="toast-container"></div>
 
-    <!-- FIREBASE & APP LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import {
@@ -491,7 +453,6 @@
             signOut
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // 1. CONFIGURACIÓN FIREBASE (Manteniendo tus claves)
         const firebaseConfig = {
             apiKey: "AIzaSyCCS2rwV6tVSjC1Qq1wbGwxw-CC463aySg",
             authDomain: "kiby-cce29.firebaseapp.com",
@@ -505,7 +466,6 @@
         const appFirebase = initializeApp(firebaseConfig);
         const auth = getAuth(appFirebase);
 
-        // 2. GESTIÓN DE DATOS (LOCAL STORAGE EN VEZ DE HARDCODE PARA CRUD)
         const DEFAULT_MODULES = [
             { id: 1, title: "Introducción a Kiby", desc: "Aprende los fundamentos básicos de la plataforma y cómo empezar.", img: "https://picsum.photos/seed/kiby1/400/200" },
             { id: 2, title: "Gestión de Usuarios", desc: "Cómo crear cuentas nuevas y gestionar permisos.", img: "https://picsum.photos/seed/kiby2/400/200" },
@@ -513,8 +473,7 @@
             { id: 4, title: "Configuración API", desc: "Conecta Kiby con otros servicios externos.", img: "https://picsum.photos/seed/kiby4/400/200" },
             { id: 5, title: "Seguridad y Copias", desc: "Mantén tus datos a salvo con copias de seguridad.", img: "https://picsum.photos/seed/kiby5/400/200" }
         ];
-
-        // Servicio de Datos simple
+        
         const DataService = {
             getModules: () => {
                 const data = localStorage.getItem('kiby_modules');
