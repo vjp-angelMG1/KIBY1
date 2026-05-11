@@ -6,10 +6,10 @@
     <title>Kiby - Plataforma Premium</title>
     <style>
         /* =========================================
-           VARIABLES Y RESET (BASE DISEÑO V2)
+           VARIABLES Y RESET
            ========================================= */
         :root {
-            --primary-color: #4f46e5; /* Indigo */
+            --primary-color: #4f46e5;
             --primary-hover: #4338ca;
             --secondary-color: #64748b;
             --bg-color: #f8fafc;
@@ -64,20 +64,40 @@
 
         .btn-full { width: 100%; }
 
+        /* Switcher de Roles específico */
+        .role-switcher {
+            display: flex;
+            background: #e2e8f0;
+            padding: 4px;
+            border-radius: 8px;
+            margin-right: 1rem;
+        }
+        .role-btn {
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            background: transparent;
+        }
+        .role-btn.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: var(--shadow-sm);
+        }
+
         input, textarea, select {
             width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 8px;
             font-size: 0.95rem; margin-bottom: 1rem; font-family: inherit; transition: var(--transition);
         }
         input:focus, textarea:focus, select:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
 
-        /* Badges */
         .badge {
             padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
             display: inline-block;
         }
         .badge-cat { background-color: #e0e7ff; color: var(--primary-color); }
         .badge-price { background-color: #dcfce7; color: #166534; }
-        .badge-role { background-color: #1e293b; color: white; border: 1px solid #334155; }
 
         /* =========================================
            LAYOUT GENERAL
@@ -143,7 +163,7 @@
         .price-free { color: var(--success); font-size: 1rem; font-weight: 700; }
 
         /* =========================================
-           TABLAS (ADMIN & COUPONS)
+           TABLAS
            ========================================= */
         .table-container { background: white; border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
@@ -190,6 +210,13 @@
             Kiby
         </div>
         <nav class="nav-links">
+            
+            <!-- Selector de Roles (NUEVO) -->
+            <div id="role-switcher" class="role-switcher">
+                <button class="role-btn" onclick="app.setRole('user')" id="btn-role-user">Modo Usuario</button>
+                <button class="role-btn" onclick="app.setRole('admin')" id="btn-role-admin">Modo Admin</button>
+            </div>
+
             <!-- Menú Común -->
             <a class="nav-link active" id="nav-catalog" onclick="app.router('catalog')">Catálogo</a>
             
@@ -198,11 +225,10 @@
             <a class="nav-link hidden" id="nav-coupons" onclick="app.router('coupons')">Mis Cupones</a>
             
             <!-- Menú Admin -->
-            <a class="nav-link hidden" id="nav-admin" onclick="app.router('admin')">Admin Panel</a>
+            <a class="nav-link hidden" id="nav-admin" onclick="app.router('admin')">Gestión Módulos</a>
 
             <div style="width: 1px; height: 20px; background: #e2e8f0; margin: 0 0.5rem;"></div>
             
-            <span id="user-role-badge" class="badge badge-role" style="font-size: 0.8rem;">USER</span>
             <a onclick="app.logout()" class="nav-link" style="color: var(--danger);">Salir</a>
         </nav>
     </header>
@@ -215,19 +241,20 @@
                 <h2 style="margin-bottom: 0.5rem;">Bienvenido a Kiby</h2>
                 <p style="color: var(--text-light); margin-bottom: 2rem;">Accede a la plataforma</p>
                 <form id="login-form">
-                    <input type="email" id="email" placeholder="Email (admin@kiby.com para admin)" required>
-                    <input type="password" id="password" placeholder="Contraseña" required>
+                    <input type="email" id="email" placeholder="admin@kiby.com" required>
+                    <input type="password" id="password" placeholder="123456" required>
                     <button type="submit" class="btn btn-primary btn-full">ENTRAR</button>
                 </form>
                 <p id="error-msg" style="color: var(--danger); font-size: 0.9rem; margin-top: 1rem;"></p>
                 <div style="margin-top: 1.5rem; font-size: 0.8rem; color: #94a3b8; text-align: left; background: #f1f5f9; padding: 10px; border-radius: 6px;">
-                    <strong>Admin:</strong> admin@kiby.com / 123456<br>
-                    <strong>Usuario:</strong> user@test.com / 123456
+                    <strong>Única Cuenta Permitida:</strong><br>
+                    Email: admin@kiby.com<br>
+                    Pass: 123456
                 </div>
             </div>
         </section>
 
-        <!-- CATALOGO (DASHBOARD) -->
+        <!-- CATALOGO -->
         <section id="catalog-view" class="section-view">
             <div style="margin-bottom: 1.5rem;">
                 <h1>Catálogo de Módulos</h1>
@@ -256,14 +283,14 @@
             <div id="modules-container" class="modules-grid"></div>
         </section>
 
-        <!-- MIS MÓDULOS (COMPRADOS) -->
+        <!-- MIS MÓDULOS -->
         <section id="my-modules-view" class="section-view">
             <h1>Mis Módulos Activos</h1>
             <p style="color: var(--text-light); margin-bottom: 2rem;">Contenido al que tienes acceso completo</p>
             <div id="purchased-container" class="modules-grid"></div>
         </section>
 
-        <!-- GESTIÓN DE CUPONES (USUARIO) -->
+        <!-- GESTIÓN DE CUPONES -->
         <section id="coupons-view" class="section-view">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <h1>Mis Cupones</h1>
@@ -280,7 +307,7 @@
         <!-- ADMIN CRUD -->
         <section id="admin-view" class="section-view">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <h1>Administración</h1>
+                <h1>Gestión de Módulos (Admin)</h1>
                 <button class="btn btn-primary" onclick="adminActions.openModal()">+ Nuevo Módulo</button>
             </div>
             <div class="table-container">
@@ -291,14 +318,14 @@
             </div>
         </section>
 
-        <!-- DETALLE MODAL -->
+        <!-- MODAL DETALLE -->
         <div id="detail-modal" class="modal-backdrop">
             <div class="modal">
                 <div id="detail-content"></div>
             </div>
         </div>
 
-        <!-- ADMIN MODAL -->
+        <!-- MODAL ADMIN -->
         <div id="admin-modal" class="modal-backdrop">
             <div class="modal">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
@@ -332,7 +359,7 @@
             </div>
         </div>
 
-        <!-- COUPON MODAL -->
+        <!-- MODAL CUPON -->
         <div id="coupon-modal" class="modal-backdrop">
             <div class="modal">
                 <h3>Generar Cupón</h3>
@@ -390,7 +417,7 @@
         };
 
         const UserStore = {
-            getRole: (email) => email === 'admin@kiby.com' ? 'admin' : 'user',
+            // Eliminamos lógica de email para rol, ahora se maneja en 'app.role'
             getPurchases: () => JSON.parse(localStorage.getItem('kiby_purchases')) || [],
             isPurchased: (id) => UserStore.getPurchases().includes(id),
             addPurchase: (id) => {
@@ -424,10 +451,14 @@
         };
 
         const app = {
-            role: null,
+            // Estado del rol: por defecto user, pero se puede cambiar
+            role: localStorage.getItem('kiby_demo_role') || 'user',
 
             init: () => {
                 if(!localStorage.getItem('kiby_modules')) DataService.saveModules(DEFAULT_MODULES);
+                
+                // Inicializar visibilidad del switcher
+                app.updateRoleUI();
                 
                 document.getElementById('login-form').addEventListener('submit', async (e) => {
                     e.preventDefault();
@@ -440,6 +471,46 @@
             },
 
             logout: () => { signOut(auth).then(() => window.location.reload()); },
+
+            // NUEVA FUNCIÓN: CAMBIAR ROL
+            setRole: (newRole) => {
+                app.role = newRole;
+                localStorage.setItem('kiby_demo_role', newRole);
+                app.updateRoleUI();
+                
+                // Redirigir a la vista adecuada según el nuevo rol
+                if(newRole === 'admin') {
+                    app.router('admin');
+                    UI.toast('Modo Administrador Activado');
+                } else {
+                    app.router('catalog');
+                    UI.toast('Modo Usuario Activado');
+                }
+            },
+
+            updateRoleUI: () => {
+                const btnUser = document.getElementById('btn-role-user');
+                const btnAdmin = document.getElementById('btn-role-admin');
+
+                if(app.role === 'admin') {
+                    btnUser.classList.remove('active');
+                    btnAdmin.classList.add('active');
+                    
+                    // Ocultar menús usuario, mostrar menú admin
+                    document.getElementById('nav-my-modules').classList.add('hidden');
+                    document.getElementById('nav-coupons').classList.add('hidden');
+                    document.getElementById('nav-admin').classList.remove('hidden');
+
+                } else {
+                    btnUser.classList.add('active');
+                    btnAdmin.classList.remove('active');
+                    
+                    // Mostrar menús usuario, ocultar menú admin
+                    document.getElementById('nav-my-modules').classList.remove('hidden');
+                    document.getElementById('nav-coupons').classList.remove('hidden');
+                    document.getElementById('nav-admin').classList.add('hidden');
+                }
+            },
 
             router: (view) => {
                 if(!auth.currentUser) return;
@@ -457,7 +528,6 @@
 
                 let mods = DataService.getModules();
 
-                // Filtros
                 if(catVal !== 'all') mods = mods.filter(m => m.category === catVal);
                 if(priceVal === 'free') mods = mods.filter(m => m.price == 0);
                 if(priceVal === 'paid') mods = mods.filter(m => m.price > 0);
@@ -466,7 +536,6 @@
                     const isFree = m.price == 0;
                     const isOwned = UserStore.isPurchased(m.id);
                     
-                    // Botón dinámico
                     let btnHtml = '';
                     if(isOwned) btnHtml = `<button class="btn btn-secondary" disabled>Inscrito</button>`;
                     else btnHtml = `<button class="btn btn-primary" onclick="app.openDetail(${m.id})">${isFree ? 'Unirse Gratis' : 'Ver Detalle'}</button>`;
@@ -632,29 +701,34 @@
         };
         document.getElementById('coupon-form').addEventListener('submit', userActions.createCoupon);
 
-        // AUTH STATE & ROLES
+        // AUTH STATE & UNICO USUARIO
         onAuthStateChanged(auth, (user) => {
             const header = document.getElementById('app-header');
             const loginView = document.getElementById('login-view');
-            const roleBadge = document.getElementById('user-role-badge');
+            const errorMsg = document.getElementById('error-msg');
 
             if (user) {
-                header.classList.remove('hidden');
-                app.role = UserStore.getRole(user.email);
-                roleBadge.innerText = app.role.toUpperCase();
-
-                // Toggle Menus
-                if(app.role === 'admin') {
-                    document.getElementById('nav-admin').classList.remove('hidden');
-                    document.getElementById('nav-my-modules').classList.add('hidden');
-                    document.getElementById('nav-coupons').classList.add('hidden');
-                    app.router('admin');
-                } else {
-                    document.getElementById('nav-admin').classList.add('hidden');
-                    document.getElementById('nav-my-modules').classList.remove('hidden');
-                    document.getElementById('nav-coupons').classList.remove('hidden');
-                    app.router('catalog');
+                // ========================================
+                // REGLA: UNICO USUARIO
+                // ========================================
+                const uniqueUser = 'admin@kiby.com';
+                
+                if (user.email !== uniqueUser) {
+                    signOut(auth);
+                    errorMsg.innerText = "Acceso denegado: Solo el usuario admin@kiby.com puede entrar.";
+                    errorMsg.style.display = 'block';
+                    return; 
                 }
+                // ========================================
+
+                header.classList.remove('hidden');
+                // Aplicar el rol guardado en localStorage
+                app.updateRoleUI();
+                
+                // Cargar vista inicial según el rol actual
+                if(app.role === 'admin') app.router('admin');
+                else app.router('catalog');
+
             } else {
                 header.classList.add('hidden');
                 UI.showView('login');
