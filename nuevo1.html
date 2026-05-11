@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiby - Plataforma Premium</title>
+    <style>
+        /* =========================================
+           VARIABLES Y RESET (BASE DISEÑO V2)
+           ========================================= */
+        :root {
+            --primary-color: #4f46e5; /* Indigo */
+            --primary-hover: #4338ca;
+            --secondary-color: #64748b;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-light: #64748b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* =========================================
+           COMPONENTES UI
+           ========================================= */
+        button { cursor: pointer; border: none; outline: none; font-family: inherit; transition: var(--transition); }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary { background-color: var(--primary-color); color: white; box-shadow: var(--shadow-sm); }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+
+        .btn-secondary { background-color: white; color: var(--text-main); border: 1px solid #e2e8f0; }
+        .btn-secondary:hover { background-color: #f1f5f9; }
+
+        .btn-danger { background-color: #fee2e2; color: var(--danger); }
+        .btn-danger:hover { background-color: #fecaca; }
+
+        .btn-full { width: 100%; }
+
+        input, textarea, select {
+            width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 8px;
+            font-size: 0.95rem; margin-bottom: 1rem; font-family: inherit; transition: var(--transition);
+        }
+        input:focus, textarea:focus, select:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+        /* Badges */
+        .badge {
+            padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+            display: inline-block;
+        }
+        .badge-cat { background-color: #e0e7ff; color: var(--primary-color); }
+        .badge-price { background-color: #dcfce7; color: #166534; }
+        .badge-role { background-color: #1e293b; color: white; border: 1px solid #334155; }
+
+        /* =========================================
+           LAYOUT GENERAL
+           ========================================= */
+        header {
+            background: var(--card-bg); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 100;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem; }
+
+        .nav-links { display: flex; gap: 0.5rem; align-items: center; }
+
+        .nav-link {
+            color: var(--text-light); text-decoration: none; font-weight: 500; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;
+            transition: var(--transition);
+        }
+        .nav-link:hover, .nav-link.active { color: var(--primary-color); background-color: #eef2ff; }
+
+        .main-container { max-width: 1200px; margin: 0 auto; padding: 2rem; width: 100%; flex: 1; }
+
+        .section-view { display: none; animation: fadeIn 0.4s ease; }
+        .section-view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* =========================================
+           FILTROS
+           ========================================= */
+        .filters-bar {
+            background: white; padding: 1.5rem; border-radius: var(--radius); margin-bottom: 2rem;
+            display: flex; gap: 1rem; align-items: center; box-shadow: var(--shadow-sm); flex-wrap: wrap;
+        }
+        .filters-bar label { font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
+        .filters-bar select { margin-bottom: 0; width: 180px; }
+
+        /* =========================================
+           GRID DE MÓDULOS
+           ========================================= */
+        .modules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; }
+
+        .module-card {
+            background: var(--card-bg); border-radius: var(--radius); overflow: hidden;
+            box-shadow: var(--shadow-md); transition: var(--transition); border: 1px solid #f1f5f9;
+            display: flex; flex-direction: column;
+        }
+        .module-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+
+        .card-image { width: 100%; height: 180px; object-fit: cover; background-color: #e2e8f0; }
+        
+        .card-content { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+        
+        .card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem; }
+        .card-title { font-size: 1.25rem; font-weight: 700; color: var(--text-main); line-height: 1.3; }
+        
+        .card-desc { color: var(--text-light); font-size: 0.9rem; line-height: 1.5; flex: 1; margin-bottom: 1.5rem; }
+        
+        .card-footer {
+            display: flex; justify-content: space-between; align-items: center; 
+            padding-top: 1rem; border-top: 1px solid #f1f5f9; margin-top: auto;
+        }
+
+        .price-tag { font-size: 1.2rem; font-weight: 800; color: var(--text-main); }
+        .price-free { color: var(--success); font-size: 1rem; font-weight: 700; }
+
+        /* =========================================
+           TABLAS (ADMIN & COUPONS)
+           ========================================= */
+        .table-container { background: white; border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #f1f5f9; }
+        th { background-color: #f8fafc; font-weight: 600; color: var(--text-light); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: #fcfcfc; }
+
+        /* =========================================
+           MODALES
+           ========================================= */
+        .modal-backdrop {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center; z-index: 1000;
+            opacity: 0; pointer-events: none; transition: var(--transition);
+        }
+        .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+        .modal { background: white; padding: 2rem; border-radius: var(--radius); width: 90%; max-width: 500px; transform: translateY(20px); transition: var(--transition); }
+        .modal-backdrop.open .modal { transform: translateY(0); }
+
+        /* =========================================
+           TOAST & LOGIN
+           ========================================= */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
+        .toast { background: #1e293b; color: white; padding: 1rem 1.5rem; border-radius: 8px; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease; }
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--danger); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .login-card {
+            max-width: 420px; margin: 50px auto; background: white; padding: 3rem;
+            border-radius: var(--radius); box-shadow: var(--shadow-lg); text-align: center;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <!-- NAV BAR -->
+    <header id="app-header" class="hidden">
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+            Kiby
+        </div>
+        <nav class="nav-links">
+            <!-- Menú Común -->
+            <a class="nav-link active" id="nav-catalog" onclick="app.router('catalog')">Catálogo</a>
+            
+            <!-- Menú Usuario -->
+            <a class="nav-link hidden" id="nav-my-modules" onclick="app.router('my-modules')">Mis Módulos</a>
+            <a class="nav-link hidden" id="nav-coupons" onclick="app.router('coupons')">Mis Cupones</a>
+            
+            <!-- Menú Admin -->
+            <a class="nav-link hidden" id="nav-admin" onclick="app.router('admin')">Admin Panel</a>
+
+            <div style="width: 1px; height: 20px; background: #e2e8f0; margin: 0 0.5rem;"></div>
+            
+            <span id="user-role-badge" class="badge badge-role" style="font-size: 0.8rem;">USER</span>
+            <a onclick="app.logout()" class="nav-link" style="color: var(--danger);">Salir</a>
+        </nav>
+    </header>
+
+    <div class="main-container">
+
+        <!-- LOGIN -->
+        <section id="login-view" class="section-view active">
+            <div class="login-card">
+                <h2 style="margin-bottom: 0.5rem;">Bienvenido a Kiby</h2>
+                <p style="color: var(--text-light); margin-bottom: 2rem;">Accede a la plataforma</p>
+                <form id="login-form">
+                    <input type="email" id="email" placeholder="Email (admin@kiby.com para admin)" required>
+                    <input type="password" id="password" placeholder="Contraseña" required>
+                    <button type="submit" class="btn btn-primary btn-full">ENTRAR</button>
+                </form>
+                <p id="error-msg" style="color: var(--danger); font-size: 0.9rem; margin-top: 1rem;"></p>
+                <div style="margin-top: 1.5rem; font-size: 0.8rem; color: #94a3b8; text-align: left; background: #f1f5f9; padding: 10px; border-radius: 6px;">
+                    <strong>Admin:</strong> admin@kiby.com / 123456<br>
+                    <strong>Usuario:</strong> user@test.com / 123456
+                </div>
+            </div>
+        </section>
+
+        <!-- CATALOGO (DASHBOARD) -->
+        <section id="catalog-view" class="section-view">
+            <div style="margin-bottom: 1.5rem;">
+                <h1>Catálogo de Módulos</h1>
+                <p style="color: var(--text-light)">Explora y filtra por tus intereses</p>
+            </div>
+
+            <!-- FILTROS -->
+            <div class="filters-bar">
+                <label>Filtrar:</label>
+                <select id="filter-category" onchange="app.renderCatalog()">
+                    <option value="all">Todas las Categorías</option>
+                    <option value="Programación">Programación</option>
+                    <option value="Diseño">Diseño</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Negocios">Negocios</option>
+                </select>
+                <select id="filter-price" onchange="app.renderCatalog()">
+                    <option value="all">Todos los Precios</option>
+                    <option value="free">Solo Gratuitos</option>
+                    <option value="paid">Solo de Pago</option>
+                </select>
+                <div style="flex: 1;"></div>
+                <button class="btn btn-secondary" onclick="app.renderCatalog()">↻ Actualizar</button>
+            </div>
+
+            <div id="modules-container" class="modules-grid"></div>
+        </section>
+
+        <!-- MIS MÓDULOS (COMPRADOS) -->
+        <section id="my-modules-view" class="section-view">
+            <h1>Mis Módulos Activos</h1>
+            <p style="color: var(--text-light); margin-bottom: 2rem;">Contenido al que tienes acceso completo</p>
+            <div id="purchased-container" class="modules-grid"></div>
+        </section>
+
+        <!-- GESTIÓN DE CUPONES (USUARIO) -->
+        <section id="coupons-view" class="section-view">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h1>Mis Cupones</h1>
+                <button class="btn btn-primary" onclick="userActions.openCouponModal()">+ Crear Cupón</button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Código</th><th>Descuento</th><th>Estado</th></tr></thead>
+                    <tbody id="coupons-table-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ADMIN CRUD -->
+        <section id="admin-view" class="section-view">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h1>Administración</h1>
+                <button class="btn btn-primary" onclick="adminActions.openModal()">+ Nuevo Módulo</button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Imagen</th><th>Título</th><th>Categoría</th><th>Precio</th><th>Acciones</th></tr></thead>
+                    <tbody id="admin-table-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- DETALLE MODAL -->
+        <div id="detail-modal" class="modal-backdrop">
+            <div class="modal">
+                <div id="detail-content"></div>
+            </div>
+        </div>
+
+        <!-- ADMIN MODAL -->
+        <div id="admin-modal" class="modal-backdrop">
+            <div class="modal">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                    <h3>Gestionar Módulo</h3>
+                    <button class="btn btn-secondary btn-icon" onclick="adminActions.closeModal()">✕</button>
+                </div>
+                <form id="module-form">
+                    <input type="hidden" id="module-id">
+                    <input type="text" id="input-title" placeholder="Título del Módulo" required>
+                    <textarea id="input-desc" rows="3" placeholder="Descripción" required></textarea>
+                    
+                    <label style="font-size: 0.85rem; font-weight: 600;">Categoría</label>
+                    <select id="input-category" required>
+                        <option value="Programación">Programación</option>
+                        <option value="Diseño">Diseño</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Negocios">Negocios</option>
+                    </select>
+
+                    <label style="font-size: 0.85rem; font-weight: 600;">Precio (€)</label>
+                    <input type="number" id="input-price" min="0" step="0.01" placeholder="0.00 para gratis" required>
+
+                    <label style="font-size: 0.85rem; font-weight: 600;">URL Imagen</label>
+                    <input type="url" id="input-img" placeholder="https://..." required>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                        <button type="button" class="btn btn-secondary" onclick="adminActions.closeModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- COUPON MODAL -->
+        <div id="coupon-modal" class="modal-backdrop">
+            <div class="modal">
+                <h3>Generar Cupón</h3>
+                <p style="color: var(--text-light); margin-bottom: 1rem; font-size: 0.9rem;">Crea un código para compartir o usar.</p>
+                <form id="coupon-form">
+                    <input type="text" id="coupon-code" placeholder="Código (ej: VERANO20)" required>
+                    <input type="number" id="coupon-discount" placeholder="Descuento (%)" min="1" max="100" required>
+                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                        <button type="button" class="btn btn-secondary" onclick="userActions.closeCouponModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Generar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container"></div>
+
+    <!-- LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // CONFIG FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyCCS2rwV6tVSjC1Qq1wbGwxw-CC463aySg",
+            authDomain: "kiby-cce29.firebaseapp.com",
+            projectId: "kiby-cce29",
+            storageBucket: "kiby-cce29.firebasestorage.app",
+            messagingSenderId: "943084875353",
+            appId: "1:943084875353:web:a996c38bd9baa52a4f4b48",
+            measurementId: "G-LCWTC4R9RM"
+        };
+        const appFirebase = initializeApp(firebaseConfig);
+        const auth = getAuth(appFirebase);
+
+        // DATOS INICIALES
+        const DEFAULT_MODULES = [
+            { id: 1, title: "Master en React", desc: "Aprende desde cero a crear aplicaciones modernas.", category: "Programación", price: 49.99, img: "https://picsum.photos/seed/react/400/200" },
+            { id: 2, title: "Diseño UI/UX", desc: "Principios fundamentales de interfaces.", category: "Diseño", price: 0, img: "https://picsum.photos/seed/ui/400/200" },
+            { id: 3, title: "Marketing 360", desc: "Estrategias integrales de mercado.", category: "Marketing", price: 29.99, img: "https://picsum.photos/seed/mkt/400/200" },
+            { id: 4, title: "Startups", desc: "Cómo lanzar tu propio negocio.", category: "Negocios", price: 89.99, img: "https://picsum.photos/seed/biz/400/200" },
+            { id: 5, title: "Python Basics", desc: "Introducción a la programación.", category: "Programación", price: 0, img: "https://picsum.photos/seed/py/400/200" }
+        ];
+
+        // SERVICIOS
+        const DataService = {
+            getModules: () => JSON.parse(localStorage.getItem('kiby_modules')) || DEFAULT_MODULES,
+            saveModules: (data) => localStorage.setItem('kiby_modules', JSON.stringify(data)),
+            add: (mod) => { const list = DataService.getModules(); list.push({...mod, id: Date.now()}); DataService.saveModules(list); },
+            update: (mod) => { const list = DataService.getModules(); const idx = list.findIndex(m => m.id == mod.id); if(idx!==-1){ list[idx]=mod; DataService.saveModules(list); }},
+            delete: (id) => { const list = DataService.getModules().filter(m => m.id != id); DataService.saveModules(list); }
+        };
+
+        const UserStore = {
+            getRole: (email) => email === 'admin@kiby.com' ? 'admin' : 'user',
+            getPurchases: () => JSON.parse(localStorage.getItem('kiby_purchases')) || [],
+            isPurchased: (id) => UserStore.getPurchases().includes(id),
+            addPurchase: (id) => {
+                const list = UserStore.getPurchases();
+                if(!list.includes(id)) { list.push(id); localStorage.setItem('kiby_purchases', JSON.stringify(list)); }
+            },
+            getCoupons: () => JSON.parse(localStorage.getItem('kiby_coupons')) || [],
+            addCoupon: (code, discount) => {
+                const list = UserStore.getCoupons();
+                list.push({ code, discount, active: true });
+                localStorage.setItem('kiby_coupons', JSON.stringify(list));
+            }
+        };
+
+        const UI = {
+            toast: (msg, type='success') => {
+                const c = document.getElementById('toast-container');
+                const t = document.createElement('div');
+                t.className = `toast ${type}`;
+                t.innerText = msg;
+                c.appendChild(t);
+                setTimeout(() => { t.style.opacity = 0; setTimeout(()=>t.remove(),300); }, 3000);
+            },
+            showView: (id) => {
+                document.querySelectorAll('.section-view').forEach(v => v.classList.remove('active'));
+                document.getElementById(`${id}-view`).classList.add('active');
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                const link = document.querySelector(`[onclick*="${id}"]`);
+                if(link) link.classList.add('active');
+            }
+        };
+
+        const app = {
+            role: null,
+
+            init: () => {
+                if(!localStorage.getItem('kiby_modules')) DataService.saveModules(DEFAULT_MODULES);
+                
+                document.getElementById('login-form').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    try {
+                        await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value);
+                    } catch(err) {
+                        document.getElementById('error-msg').innerText = "Error: Comprueba tus credenciales.";
+                    }
+                });
+            },
+
+            logout: () => { signOut(auth).then(() => window.location.reload()); },
+
+            router: (view) => {
+                if(!auth.currentUser) return;
+                UI.showView(view);
+                if(view === 'catalog') app.renderCatalog();
+                if(view === 'my-modules') app.renderMyModules();
+                if(view === 'coupons') userActions.renderCoupons();
+                if(view === 'admin') adminActions.renderTable();
+            },
+
+            renderCatalog: () => {
+                const container = document.getElementById('modules-container');
+                const catVal = document.getElementById('filter-category').value;
+                const priceVal = document.getElementById('filter-price').value;
+
+                let mods = DataService.getModules();
+
+                // Filtros
+                if(catVal !== 'all') mods = mods.filter(m => m.category === catVal);
+                if(priceVal === 'free') mods = mods.filter(m => m.price == 0);
+                if(priceVal === 'paid') mods = mods.filter(m => m.price > 0);
+
+                container.innerHTML = mods.map(m => {
+                    const isFree = m.price == 0;
+                    const isOwned = UserStore.isPurchased(m.id);
+                    
+                    // Botón dinámico
+                    let btnHtml = '';
+                    if(isOwned) btnHtml = `<button class="btn btn-secondary" disabled>Inscrito</button>`;
+                    else btnHtml = `<button class="btn btn-primary" onclick="app.openDetail(${m.id})">${isFree ? 'Unirse Gratis' : 'Ver Detalle'}</button>`;
+
+                    return `
+                    <div class="module-card">
+                        <img src="${m.img}" class="card-image">
+                        <div class="card-content">
+                            <div class="card-header">
+                                <span class="badge badge-cat">${m.category}</span>
+                            </div>
+                            <div class="card-title">${m.title}</div>
+                            <div class="card-desc">${m.desc.substring(0,70)}...</div>
+                            <div class="card-footer">
+                                <span class="${isFree ? 'price-free' : 'price-tag'}">${isFree ? 'GRATIS' : m.price.toFixed(2) + '€'}</span>
+                                ${btnHtml}
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+            },
+
+            renderMyModules: () => {
+                const container = document.getElementById('purchased-container');
+                const myIds = UserStore.getPurchases();
+                const allMods = DataService.getModules();
+                const myMods = allMods.filter(m => myIds.includes(m.id));
+
+                if(myMods.length === 0) {
+                    container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 2rem; background: #f1f5f9; border-radius: 12px;">Aún no tienes módulos activos. Ve al catálogo.</div>`;
+                    return;
+                }
+
+                container.innerHTML = myMods.map(m => `
+                    <div class="module-card">
+                        <img src="${m.img}" class="card-image">
+                        <div class="card-content">
+                            <div class="card-title">${m.title}</div>
+                            <div class="card-desc">${m.desc}</div>
+                            <button class="btn btn-primary btn-full" style="margin-top:1rem;" onclick="UI.toast('Iniciando: ${m.title}')">VER CONTENIDO</button>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            openDetail: (id) => {
+                const m = DataService.getModules().find(x => x.id == id);
+                const modal = document.getElementById('detail-modal');
+                const content = document.getElementById('detail-content');
+                
+                const isFree = m.price == 0;
+                const priceTxt = isFree ? "GRATIS" : `${m.price}€`;
+
+                content.innerHTML = `
+                    <img src="${m.img}" style="width:100%; height:150px; object-fit:cover; border-radius:8px; margin-bottom:1rem;">
+                    <span class="badge badge-cat">${m.category}</span>
+                    <h2 style="margin:0.5rem 0;">${m.title}</h2>
+                    <p style="color:var(--text-light); margin: 1rem 0;">${m.desc}</p>
+                    <div style="font-size:1.5rem; font-weight:bold; margin-bottom:1.5rem;">${priceTxt}</div>
+                    
+                    <div style="display:flex; gap:0.5rem;">
+                        <button class="btn btn-secondary" onclick="document.getElementById('detail-modal').classList.remove('open')">Cancelar</button>
+                        <button class="btn btn-primary" onclick="app.processPurchase(${m.id})">
+                            ${isFree ? 'Confirmar Inscripción' : 'Comprar Ahora'}
+                        </button>
+                    </div>
+                `;
+                modal.classList.add('open');
+            },
+
+            processPurchase: (id) => {
+                const m = DataService.getModules().find(x => x.id == id);
+                if(m.price > 0) {
+                    const confirmed = confirm(`¿Proceder al pago de ${m.price}€ por "${m.title}"?\n\n(Simulación de tarjeta)`);
+                    if(!confirmed) return;
+                }
+                UserStore.addPurchase(id);
+                document.getElementById('detail-modal').classList.remove('open');
+                UI.toast('¡Inscripción realizada con éxito!');
+                app.renderCatalog();
+            }
+        };
+
+        const adminActions = {
+            renderTable: () => {
+                const tbody = document.getElementById('admin-table-body');
+                tbody.innerHTML = DataService.getModules().map(m => `
+                    <tr>
+                        <td><img src="${m.img}" width="40" style="border-radius:4px;"></td>
+                        <td>${m.title}</td>
+                        <td><span class="badge badge-cat">${m.category}</span></td>
+                        <td>${m.price == 0 ? 'Gratis' : m.price+'€'}</td>
+                        <td>
+                            <button onclick="adminActions.edit(${m.id})" class="btn btn-secondary btn-icon">✎</button>
+                            <button onclick="adminActions.delete(${m.id})" class="btn btn-danger btn-icon">🗑</button>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+            openModal: () => {
+                document.getElementById('module-form').reset();
+                document.getElementById('module-id').value = '';
+                document.getElementById('admin-modal').classList.add('open');
+            },
+            closeModal: () => document.getElementById('admin-modal').classList.remove('open'),
+            save: (e) => {
+                e.preventDefault();
+                const id = document.getElementById('module-id').value;
+                const data = {
+                    id: id ? parseInt(id) : null,
+                    title: document.getElementById('input-title').value,
+                    desc: document.getElementById('input-desc').value,
+                    category: document.getElementById('input-category').value,
+                    price: parseFloat(document.getElementById('input-price').value),
+                    img: document.getElementById('input-img').value
+                };
+                if(data.id) DataService.update(data); else DataService.add(data);
+                adminActions.closeModal();
+                adminActions.renderTable();
+                UI.toast('Módulo guardado correctamente');
+            },
+            edit: (id) => {
+                const m = DataService.getModules().find(x => x.id == id);
+                if(!m) return;
+                document.getElementById('module-id').value = m.id;
+                document.getElementById('input-title').value = m.title;
+                document.getElementById('input-desc').value = m.desc;
+                document.getElementById('input-category').value = m.category;
+                document.getElementById('input-price').value = m.price;
+                document.getElementById('input-img').value = m.img;
+                document.getElementById('admin-modal').classList.add('open');
+            },
+            delete: (id) => { if(confirm('¿Eliminar módulo?')) { DataService.delete(id); adminActions.renderTable(); }}
+        };
+        document.getElementById('module-form').addEventListener('submit', adminActions.save);
+
+        const userActions = {
+            renderCoupons: () => {
+                const tbody = document.getElementById('coupons-table-body');
+                const coupons = UserStore.getCoupons();
+                tbody.innerHTML = coupons.length ? coupons.map(c => `
+                    <tr>
+                        <td style="font-family:monospace; font-weight:bold;">${c.code}</td>
+                        <td>${c.discount}%</td>
+                        <td><span class="badge badge-price">Activo</span></td>
+                    </tr>
+                `).join('') : '<tr><td colspan="3" style="text-align:center">No hay cupones creados.</td></tr>';
+            },
+            openCouponModal: () => {
+                document.getElementById('coupon-form').reset();
+                document.getElementById('coupon-modal').classList.add('open');
+            },
+            closeCouponModal: () => document.getElementById('coupon-modal').classList.remove('open'),
+            createCoupon: (e) => {
+                e.preventDefault();
+                const code = document.getElementById('coupon-code').value;
+                const disc = document.getElementById('coupon-discount').value;
+                UserStore.addCoupon(code, disc);
+                userActions.closeCouponModal();
+                userActions.renderCoupons();
+                UI.toast(`Cupón ${code} creado con éxito`);
+            }
+        };
+        document.getElementById('coupon-form').addEventListener('submit', userActions.createCoupon);
+
+        // AUTH STATE & ROLES
+        onAuthStateChanged(auth, (user) => {
+            const header = document.getElementById('app-header');
+            const loginView = document.getElementById('login-view');
+            const roleBadge = document.getElementById('user-role-badge');
+
+            if (user) {
+                header.classList.remove('hidden');
+                app.role = UserStore.getRole(user.email);
+                roleBadge.innerText = app.role.toUpperCase();
+
+                // Toggle Menus
+                if(app.role === 'admin') {
+                    document.getElementById('nav-admin').classList.remove('hidden');
+                    document.getElementById('nav-my-modules').classList.add('hidden');
+                    document.getElementById('nav-coupons').classList.add('hidden');
+                    app.router('admin');
+                } else {
+                    document.getElementById('nav-admin').classList.add('hidden');
+                    document.getElementById('nav-my-modules').classList.remove('hidden');
+                    document.getElementById('nav-coupons').classList.remove('hidden');
+                    app.router('catalog');
+                }
+            } else {
+                header.classList.add('hidden');
+                UI.showView('login');
+            }
+        });
+
+        window.app = app;
+        window.adminActions = adminActions;
+        window.userActions = userActions;
+        app.init();
+    </script>
+</body>
+</html>

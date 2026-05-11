@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle del Módulo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <h2>Kiby</h2>
+        <a href="dashboard.html">VOLVER AL LISTADO</a>
+    </header>
+
+    <div class="container">
+        <div id="module-detail" class="detail-view hidden">
+            <h1 id="detail-title"></h1>
+            <p id="detail-desc"></p>
+            <br>
+            <button onclick="history.back()" style="max-width: 200px;">Volver</button>
+        </div>
+        <p id="loading-detail">Cargando detalles...</p>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>
