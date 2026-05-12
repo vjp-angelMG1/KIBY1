@@ -4,11 +4,11 @@ import React from 'react';
  * Componente Input reutilizable.
  * Maneja labels y estilos de formulario consistentes.
  */
-const Input = ({ label, type = "text", name, value, onChange, placeholder, required = false }) => {
+const Input = ({ label, type = "text", name, value, onChange, placeholder, required = false, className = "" }) => {
   return (
-    <div>
+    <div className={className}>
       {/* Mostrar etiqueta si existe */}
-      {label && <label className="block text-sm font-semibold mb-1 text-gray-700">{label}</label>}
+      {label && <label className="block text-sm font-semibold mb-1 text-[#161616]">{label}</label>}
       
       <input 
         type={type}
@@ -17,7 +17,7 @@ const Input = ({ label, type = "text", name, value, onChange, placeholder, requi
         onChange={onChange}
         placeholder={placeholder}
         required={required}
-        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#bf522b] focus:border-[#bf522b] focus:outline-none transition"
       />
     </div>
   );

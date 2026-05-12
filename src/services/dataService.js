@@ -5,9 +5,33 @@ const getModules = () => {
   const data = localStorage.getItem(APP_CONFIG.STORAGE_KEYS.MODULES);
   if (!data) {
     const defaults = [
-      { id: 1, title: "Master en React", desc: "Aprende desde cero.", category: "Programación", price: 49.99, img: "https://picsum.photos/seed/react/400/200" },
-      { id: 2, title: "Diseño UI/UX", desc: "Principios básicos.", category: "Diseño", price: 0, img: "https://picsum.photos/seed/ui/400/200" },
-      { id: 3, title: "Marketing 360", desc: "Estrategias de mercado.", category: "Marketing", price: 29.99, img: "https://picsum.photos/seed/mkt/400/200" }
+      { 
+        id: 1, 
+        title: "Master en React", 
+        desc: "Aprende desde cero.", 
+        category: "Programación", 
+        price: 49.99, 
+        // Foto de código/programación real
+        img: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
+      },
+      { 
+        id: 2, 
+        title: "Diseño UI/UX", 
+        desc: "Principios básicos.", 
+        category: "Diseño", 
+        price: 0, 
+        // Foto de diseño de interfaces real
+        img: "https://images.unsplash.com/photo-1561070791-2526d30994b5?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
+      },
+      { 
+        id: 3, 
+        title: "Marketing 360", 
+        desc: "Estrategias de mercado.", 
+        category: "Marketing", 
+        price: 29.99, 
+        // Foto de marketing/negocios real
+        img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
+      }
     ];
     saveModules(defaults);
     return defaults;
