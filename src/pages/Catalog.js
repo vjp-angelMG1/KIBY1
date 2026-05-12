@@ -4,6 +4,11 @@ import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import { APP_CONFIG } from "../config/constants";
 
+/**
+ * Vista del Catálogo de Módulos.
+ * Filtros por categoría y precio.
+ * Lógica de compra simulada para módulos de pago.
+ */
 const Catalog = ({ onPurchase }) => {
   const [modules, setModules] = useState([]);
   const [filterCat, setFilterCat] = useState('all');
@@ -13,16 +18,26 @@ const Catalog = ({ onPurchase }) => {
     setModules(ModuleService.getAll());
   }, []);
 
+  /**
+   * Maneja la lógica de compra o inscripción.
+   * Simula proceso de pago para módulos > 0€.
+   * @param {Module} m 
+   */
   const handleBuy = (m) => {
     if (m.price === 0) {
+      // Inscripción gratuita inmediata
       ModuleService.addPurchase(m.id);
-      setModules(ModuleService.getAll()); // Refrescar estado
+      setModules(ModuleService.getAll());
       alert("Inscripción gratis completada");
     } else {
+      // Simulación de compra (Lógica Rol User)
       onPurchase(m);
     }
   };
 
+  /**
+   * Filtra los módulos basado en el estado local.
+   */
   const filtered = modules.filter(m => {
     const catMatch = filterCat === 'all' || m.category === filterCat;
     const priceMatch = filterPrice === 'all' 
@@ -34,6 +49,7 @@ const Catalog = ({ onPurchase }) => {
   return (
     <div>
       <div className="mb-6 flex flex-wrap gap-4 items-center">
+        {/* Filtros fuera del grid, como solicitado */}
         <select className="p-2 border rounded" onChange={(e) => setFilterCat(e.target.value)}>
           <option value="all">Todas las Categorías</option>
           {APP_CONFIG.CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
