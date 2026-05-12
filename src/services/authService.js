@@ -6,7 +6,7 @@ import {
   onAuthStateChanged 
 } from "firebase/auth";
 
-import { FIREBASE_CONFIG, APP_CONFIG } from "../config/constants";
+import { FIREBASE_CONFIG } from "../config/constants";
 
 const app = initializeApp(FIREBASE_CONFIG);
 export const auth = getAuth(app);
@@ -19,14 +19,9 @@ export const logout = async () => {
   return signOut(auth);
 };
 
+// Ya no expulsamos a los usuarios normales, cualquiera puede loguearse
 export const subscribeToAuthChanges = (callback) => {
   return onAuthStateChanged(auth, (user) => {
-    if (user && user.email !== APP_CONFIG.ADMIN_EMAIL) {
-      // Seguridad: Forzar logout si no es el usuario permitido
-      signOut(auth);
-      callback(null); 
-    } else {
-      callback(user);
-    }
+    callback(user);
   });
 };

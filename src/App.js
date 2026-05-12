@@ -5,10 +5,12 @@ import Catalog from "./pages/Catalog";
 import CouponManager from "./pages/CouponManager";
 import AdminPanel from "./pages/AdminPanel";
 import Profile from "./pages/Profile";
+import Checkout from "./pages/Checkout"; // NUEVO IMPORT
 import Button from "./components/ui/Button";
+import { APP_CONFIG } from "./config/constants";
 import { ModuleService } from "./services/dataService";
 
-const Header = ({ currentView, setView, user, logout }) => {
+const Header = ({ currentView, setView, user, logout, isAdmin }) => {
   const myModules = ModuleService.getMyModules();
 
   return (
@@ -17,11 +19,25 @@ const Header = ({ currentView, setView, user, logout }) => {
         <div className="font-extrabold text-2xl text-[#bf522b]">Kiby</div>
         <nav className="flex gap-2 items-center flex-wrap">
           
-          {/* Botones de navegación con estilos adaptados a fondo oscuro */}
-          <Button variant={currentView === 'catalog' ? 'primary' : 'secondary'} onClick={() => setView('catalog')}>Catálogo</Button>
-          <Button variant={currentView === 'coupons' ? 'primary' : 'secondary'} onClick={() => setView('coupons')}>Cupones</Button>
-          <Button variant={currentView === 'profile' ? 'primary' : 'secondary'} onClick={() => setView('profile')}>Mi Cuenta</Button>
-          <Button variant={currentView === 'admin' ? 'primary' : 'secondary'} onClick={() => setView('admin')}>Panel Admin</Button>
+          <Button variant={currentView === 'catalog' ? 'primary' : 'secondary'} onClick={() => setView('catalog')}>
+            Tienda
+          </Button>
+          
+          {!isAdmin && (
+            <Button variant={currentView === 'coupons' ? 'primary' : 'secondary'} onClick={() => setView('coupons')}>
+              Cupones
+            </Button>
+          )}
+
+          <Button variant={currentView === 'profile' ? 'primary' : 'secondary'} onClick={() => setView('profile')}>
+            Mi Cuenta
+          </Button>
+          
+          {isAdmin && (
+            <Button variant={currentView === 'admin' ? 'primary' : 'secondary'} onClick={() => setView('admin')}>
+              Panel Admin
+            </Button>
+          )}
           
           <div className="w-px h-6 bg-gray-600 mx-2"></div>
           
@@ -30,7 +46,6 @@ const Header = ({ currentView, setView, user, logout }) => {
               key={m.id}
               onClick={() => setView('content', m)}
               className="px-3 py-1 text-sm font-bold bg-[#bf522b]/10 text-[#bf522b] rounded hover:bg-[#bf522b]/20 transition border border-[#bf522b]/30 shadow-sm"
-              title={`Acceder a ${m.title}`}
             >
               {m.title}
             </button>
@@ -49,28 +64,35 @@ export default function App() {
   const [selectedModule, setSelectedModule] = useState(null);
   const [dynamicMenuKey, setDynamicMenuKey] = useState(0);
 
+  const isAdmin = user?.email === APP_CONFIG.ADMIN_EMAIL;
+
   if (loading) return <div className="p-10 text-center text-gray-500">Cargando aplicación...</div>;
   if (!user) return <Login />;
 
   const handlePurchase = (module) => {
-    const confirmBuy = window.confirm(`¿Confirmar pago de ${module.price}€ por "${module.title}"?`);
-    if (confirmBuy) {
-      alert("Conectando con pasarela de pago... Procesando tarjeta...");
-      setTimeout(() => {
-        ModuleService.addPurchase(module.id);
-        setDynamicMenuKey(Date.now()); 
-        alert("¡Pago completado con éxito! El módulo ya es tuyo.");
-        setView('catalog'); 
-      }, 1500);
-    }
+    ModuleService.addPurchase(module.id);
+    setDynamicMenuKey(Date.now()); 
+    setView('profile'); // Tras comprar, llevamos al usuario a su cuenta para que vea el curso
+  };
+
+  // Función para ir al checkout
+  const goToCheckout = (module) => {
+    setSelectedModule(module);
+    setView('checkout');
   };
 
   const renderView = () => {
     switch(view) {
-      case 'catalog': return <Catalog onPurchase={handlePurchase} refreshKey={dynamicMenuKey} />;
-      case 'coupons': return <CouponManager />;
-      case 'admin': return <AdminPanel onPurchase={handlePurchase} />;
-      case 'profile': return <Profile />;
+      case 'catalog': 
+        return <Catalog goToCheckout={goToCheckout} refreshKey={dynamicMenuKey} isAdmin={isAdmin} />;
+      case 'coupons': 
+        return <CouponManager isAdmin={isAdmin} />;
+      case 'admin': 
+        return isAdmin ? <AdminPanel /> : <Catalog goToCheckout={goToCheckout} refreshKey={dynamicMenuKey} isAdmin={isAdmin} />;
+      case 'profile': 
+        return <Profile goToStore={() => setView('catalog')} />;
+      case 'checkout': 
+        return <Checkout module={selectedModule} onPurchase={handlePurchase} goBack={() => setView('catalog')} />;
       case 'content': 
         return (
           <div className="text-center p-10 bg-white rounded shadow mt-10 border border-gray-100">
@@ -80,13 +102,12 @@ export default function App() {
               </div>
               <h1 className="text-3xl font-bold text-[#161616]">{selectedModule?.title}</h1>
               <p className="mt-4 text-gray-600">Bienvenido al contenido premium.</p>
-              <div className="mt-6 inline-block bg-gray-100 p-8 rounded text-gray-400 w-full max-w-lg mx-auto">
-                [ REPRODUCTOR DE VIDEO DEL CURSO ]
-              </div>
+              <div className="mt-6 inline-block bg-gray-100 p-8 rounded text-gray-400 w-full max-w-lg mx-auto">[ REPRODUCTOR DE VIDEO ]</div>
             </div>
           </div>
         );
-      default: return <Catalog />;
+      default: 
+        return <Catalog goToCheckout={goToCheckout} refreshKey={dynamicMenuKey} isAdmin={isAdmin} />;
     }
   };
 
@@ -98,6 +119,7 @@ export default function App() {
         setView={(v, mod) => { setView(v); if(mod) setSelectedModule(mod); }} 
         user={user} 
         logout={logout} 
+        isAdmin={isAdmin}
       />
       <main className="container mx-auto py-8">
         {renderView()}

@@ -106,4 +106,12 @@ export const CouponService = {
     list = list.map(c => c.id === id ? { ...c, active: !c.active } : c);
     localStorage.setItem(APP_CONFIG.STORAGE_KEYS.COUPONS, JSON.stringify(list));
   }
+  
 };
+  /** Validar cupón y obtener descuento */
+  applyCoupon: (code) => {
+    const list = CouponService.getAll();
+    // Buscamos el cupón ignorando mayúsculas/minúsculas
+    const coupon = list.find(c => c.code.toLowerCase() === code.toLowerCase() && c.active);
+    return coupon || null; // Devuelve el objeto cupón o null si no existe/no está activo
+  };
