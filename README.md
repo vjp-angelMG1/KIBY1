@@ -1,70 +1,77 @@
-# Getting Started with Create React App
+# 🛠️ Instalación y Puesta en Marcha
+Sigue estos pasos para ejecutar el proyecto en tu máquina local:
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 1. Clonar el repositorio
 
-## Available Scripts
+git clone <url-del-repositorio>cd kiby
 
-In the project directory, you can run:
+## 2. Instalar
 
-### `npm start`
+npm install
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 3. Configurar Firebase
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+El proyecto requiere credenciales de Firebase para funcionar. Estas credenciales no deben subirse a GitHub por seguridad.
 
-### `npm test`
+Crea.env.localen la raíz de tu proyecto y añade tus credenciales:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+entorno
 
-### `npm run build`
+REACT_APP_FIREBASE_API_KEY=tu_api_key
+REACT_APP_FIREBASE_AUTH_DOMAIN=tu_proyecto.firebaseapp.com
+REACT_APP_FIREBASE_PROJECT_ID=tu_proyecto_id
+REACT_APP_FIREBASE_STORAGE_BUCKET=tu_proyecto.appspot.com
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=tu_sender_id
+REACT_APP_FIREBASE_APP_ID=tu_app_id
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+*(Nota: Actualmente las credenciales están en `src(Nota: Actualmente las credenciales están en , pero es recomendable moverlas a variables de entorno).src/config/constants.js
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 4. Ejecutar la aplicación
+intento
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+npm start
+Se abrirá http://localhost:3000 en tu navegador.
 
-### `npm run eject`
+# 📂Arquitectura del proyecto
+El proyecto sigue una arquitectura basada en responsabilidades:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+texto
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+src/
+├── components/     # Componentes reutilizables
+│   └── ui/         # Botones, Cards, Inputs base
+├── config/         # Constantes y configuración (Firebase, Categorías)
+├── context/        # Estado global (AuthContext para Firebase)
+├── models/         # Definición de tipos de datos (JSDoc)
+├── pages/          # Vistas principales (Login, Catalog, Admin...)
+├── services/       # Lógica de negocio y APIs (Firebase, LocalStorage)
+├── App.js          # Enrutamiento y layout principal
+└── index.css       # Estilos globales y directivas Tailwind
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+ # **⚙️ Scripts Disponibles**
+En npm start
+Ejecute la aplicación en modo desarrollo. abre
+http://localhost:3000 para verla en el navegador. La página se recargará
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+npm run build
+Construye la aplicación para producción en la carpeta . Optimice el código para el mejor rendimiento. Tu aplicación estará listabuild
 
-## Learn More
+npm run eject
+Nota: esta es una operación irreversible. Si no estás
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+# **💾 Notas sobre los Datos (LocalStorage)**
+Para facilitar ellocalStoragedel
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Si es la primera vez que abre la aplicación, se cargará **3 mod3 módulos por defecto con imágenes reales de Unsplash.
+Para resetear los datos (si las imágenes
+JavaScript
 
-### Code Splitting
+localStorage.removeItem('kiby_modules'); localStorage.removeItem('kiby_purchases'); location.reload();
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+# **🚀 Despliege**
+Para poner la aplicación en producción, la forma más sencilla es usarVerceloNetlify:
 
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Sube tu código a GitHub.
+Conecte su repositorio en Vercel/Netlify.
+Agregue las variables de entorno de Firebase en la configuración del despliegue.
+¡Despliega!
