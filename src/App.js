@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAuth } from "./context/AuthContext";
 import Login from "./pages/Login";
 import Catalog from "./pages/Catalog";
 import CouponManager from "./pages/CouponManager";
 import AdminPanel from "./pages/AdminPanel";
+import Profile from "./pages/Profile"; // Importamos el nuevo Perfil
 import Button from "./components/ui/Button";
 import { ModuleService } from "./services/dataService";
 
 /**
  * Header de Navegación.
- * Controla qué ve el Admin vs el User y genera el Menú Dinámico.
+ * Controla las vistas del Usuario vs Admin y genera el Menú Dinámico.
  */
 const Header = ({ currentView, setView, user, logout }) => {
-  // LÓGICA DE MENÚ DINÁMICO: Leemos los módulos comprados
+  // Obtenemos los módulos comprados para generar el menú dinámico
   const myModules = ModuleService.getMyModules();
 
   return (
@@ -20,12 +21,16 @@ const Header = ({ currentView, setView, user, logout }) => {
       <div className="container mx-auto flex justify-between items-center">
         <div className="font-extrabold text-2xl text-indigo-600">Kiby</div>
         <nav className="flex gap-2 items-center">
+          
           {/* --- VISTA ROL USER --- */}
           <Button variant={currentView === 'catalog' ? 'primary' : 'secondary'} onClick={() => setView('catalog')}>
             Catálogo
           </Button>
           <Button variant={currentView === 'coupons' ? 'primary' : 'secondary'} onClick={() => setView('coupons')}>
-            Mis Cupones (User)
+            Cupones (User)
+          </Button>
+          <Button variant={currentView === 'profile' ? 'primary' : 'secondary'} onClick={() => setView('profile')}>
+            Mi Cuenta
           </Button>
           
           {/* --- VISTA ROL ADMIN --- */}
@@ -57,11 +62,11 @@ const Header = ({ currentView, setView, user, logout }) => {
 
 /**
  * Componente Principal App.
- * Gestiona el enrutamiento y la simulación de pagos.
+ * Gestiona el enrutamiento, la simulación de pagos y el estado global.
  */
 export default function App() {
   const { user, loading, logout } = useAuth();
-  const [view, setView] = useState('catalog'); // catalog, coupons, admin, content
+  const [view, setView] = useState('catalog'); // catalog, coupons, admin, content, profile
   const [selectedModule, setSelectedModule] = useState(null);
   const [dynamicMenuKey, setDynamicMenuKey] = useState(0); // Key para forzar re-render del Header
 
@@ -78,18 +83,20 @@ export default function App() {
     const confirm = window.confirm(`¿Confirmar pago de ${module.price}€ por "${module.title}"?`);
     if (confirm) {
       // Simulación de proceso de pago (1.5 segundos)
-      alert("Conectando con banco... Procesando tarjeta...");
+      alert("Conectando con pasarela de pago... Procesando tarjeta...");
       
       setTimeout(() => {
         // Transacción Exitosa
         ModuleService.addPurchase(module.id);
         
-        // Actualizamos el menú dinámico
-        setDynamicMenuKey(prev => prev + 1); 
+        // Actualizamos el menú dinámico cambiando la Key
+        setDynamicMenuKey(Date.now()); 
         
-        // Redirigimos al catálogo y recargamos para limpiar estado
+        // Mostramos confirmación final
+        alert("¡Pago completado con éxito! El módulo ya es tuyo.");
+        
+        // Redirigimos al catálogo para ver el cambio
         setView('catalog'); 
-        window.location.reload(); 
       }, 1500);
     }
   };
@@ -99,8 +106,10 @@ export default function App() {
    */
   const renderView = () => {
     switch(view) {
-      case 'catalog': return <Catalog onPurchase={handlePurchase} />;
+      case 'catalog': return <Catalog onPurchase={handlePurchase} refreshKey={dynamicMenuKey} />;
       case 'coupons': return <CouponManager />;
+      case 'admin': return <AdminPanel />;
+      case 'profile': return <Profile />;
       case 'content': 
         return (
           <div className="text-center p-10 bg-white rounded shadow mt-10 border border-green-100">
@@ -116,7 +125,6 @@ export default function App() {
             </div>
           </div>
         );
-      case 'admin': return <AdminPanel />;
       default: return <Catalog />;
     }
   };

@@ -4,40 +4,32 @@ import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import { APP_CONFIG } from "../config/constants";
 
-/**
- * Vista del Catálogo de Módulos.
- * Filtros por categoría y precio.
- * Lógica de compra simulada para módulos de pago.
- */
-const Catalog = ({ onPurchase }) => {
+const Catalog = ({ onPurchase, refreshKey }) => {
   const [modules, setModules] = useState([]);
   const [filterCat, setFilterCat] = useState('all');
   const [filterPrice, setFilterPrice] = useState('all');
 
   useEffect(() => {
-    setModules(ModuleService.getAll());
+    const data = ModuleService.getAll();
+    console.log("Catálogo cargado:", data);
+    setModules(data);
   }, []);
 
-  /**
-   * Maneja la lógica de compra o inscripción.
-   * Simula proceso de pago para módulos > 0€.
-   * @param {Module} m 
-   */
+  useEffect(() => {
+    console.log("Actualizando catálogo...");
+    setModules(ModuleService.getAll());
+  }, [refreshKey]);
+
   const handleBuy = (m) => {
     if (m.price === 0) {
-      // Inscripción gratuita inmediata
       ModuleService.addPurchase(m.id);
       setModules(ModuleService.getAll());
       alert("Inscripción gratis completada");
     } else {
-      // Simulación de compra (Lógica Rol User)
       onPurchase(m);
     }
   };
 
-  /**
-   * Filtra los módulos basado en el estado local.
-   */
   const filtered = modules.filter(m => {
     const catMatch = filterCat === 'all' || m.category === filterCat;
     const priceMatch = filterPrice === 'all' 
@@ -49,7 +41,6 @@ const Catalog = ({ onPurchase }) => {
   return (
     <div>
       <div className="mb-6 flex flex-wrap gap-4 items-center">
-        {/* Filtros fuera del grid, como solicitado */}
         <select className="p-2 border rounded" onChange={(e) => setFilterCat(e.target.value)}>
           <option value="all">Todas las Categorías</option>
           {APP_CONFIG.CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -66,9 +57,20 @@ const Catalog = ({ onPurchase }) => {
           const isOwned = ModuleService.isPurchased(m.id);
           const isFree = m.price === 0;
           
+          // Manejo de errores de imagen
+          const handleImageError = (e) => {
+            e.target.src = "https://via.placeholder.com/400x200?text=Sin+Imagen";
+          };
+          
           return (
             <Card key={m.id}>
-              <img src={m.img} alt={m.title} className="w-full h-48 object-cover" />
+              {/* Fallback de imagen si falla la URL */}
+              <img 
+                src={m.img} 
+                alt={m.title} 
+                className="w-full h-48 object-cover bg-gray-200" 
+                onError={handleImageError}
+              />
               <div className="p-4 flex flex-col h-full">
                 <div className="flex justify-between items-start mb-2">
                   <span className="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full font-bold uppercase">{m.category}</span>
