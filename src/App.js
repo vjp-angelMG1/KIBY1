@@ -108,7 +108,7 @@ export default function App() {
     switch(view) {
       case 'catalog': return <Catalog onPurchase={handlePurchase} refreshKey={dynamicMenuKey} />;
       case 'coupons': return <CouponManager />;
-      case 'admin': return <AdminPanel />;
+      case 'admin': return <AdminPanel onPurchase={handlePurchase} />;
       case 'profile': return <Profile />;
       case 'content': 
         return (

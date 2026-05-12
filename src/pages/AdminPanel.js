@@ -2,15 +2,10 @@ import React, { useState, useEffect } from "react";
 import { ModuleService } from "../services/dataService";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
-import Input from "../components/ui/Input"; // Asegúrate de que este archivo existe
+import Input from "../components/ui/Input";
 import { APP_CONFIG } from "../config/constants";
 
-/**
- * Panel de Administración (CRUD).
- * Solo accesible para el rol Admin.
- * Permite Crear, Leer, Actualizar y Eliminar módulos.
- */
-const AdminPanel = () => {
+const AdminPanel = ({ onPurchase }) => { // Recibe la función de compra como prop
   const [modules, setModules] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingModule, setEditingModule] = useState(null);
@@ -22,7 +17,6 @@ const AdminPanel = () => {
     img: ""
   });
 
-  // Cargar módulos al iniciar
   useEffect(() => {
     loadModules();
   }, []);
@@ -31,7 +25,6 @@ const AdminPanel = () => {
     setModules(ModuleService.getAll());
   };
 
-  // Abrir modal para Crear o Editar
   const handleOpenModal = (module = null) => {
     if (module) {
       setEditingModule(module);
@@ -84,7 +77,7 @@ const AdminPanel = () => {
         <Button onClick={() => handleOpenModal()}>+ Nuevo Módulo</Button>
       </div>
 
-      {/* Tabla de Módulos */}
+      {/* Tabla de Módulos con Botón de Compra */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
         <table className="w-full text-left">
           <thead className="bg-gray-50 border-b border-gray-200">
@@ -93,34 +86,58 @@ const AdminPanel = () => {
               <th className="p-4 font-semibold text-gray-600">Título</th>
               <th className="p-4 font-semibold text-gray-600">Categoría</th>
               <th className="p-4 font-semibold text-gray-600">Precio</th>
-              <th className="p-4 font-semibold text-gray-600 text-right">Acciones</th>
+              <th className="p-4 font-semibold text-gray-600 text-right">Gestión / Compra</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {modules.map(m => (
-              <tr key={m.id} className="hover:bg-gray-50 transition">
-                <td className="p-4">
-                  <img src={m.img} alt={m.title} className="w-10 h-10 rounded-lg object-cover shadow-sm" />
-                </td>
-                <td className="p-4 font-medium text-gray-900">{m.title}</td>
-                <td className="p-4">
-                  <span className="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full font-bold uppercase">
-                    {m.category}
-                  </span>
-                </td>
-                <td className="p-4 font-bold text-gray-700">
-                  {m.price === 0 ? 'Gratis' : `${m.price}€`}
-                </td>
-                <td className="p-4 text-right">
-                  <button onClick={() => handleOpenModal(m)} className="text-indigo-600 hover:bg-indigo-50 p-2 rounded transition mr-1">
-                    ✎ Editar
-                  </button>
-                  <button onClick={() => handleDelete(m.id)} className="text-red-600 hover:bg-red-50 p-2 rounded transition">
-                    🗑 Borrar
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {modules.map(m => {
+              const isOwned = ModuleService.isPurchased(m.id);
+              return (
+                <tr key={m.id} className="hover:bg-gray-50 transition">
+                  <td className="p-4">
+                    <img src={m.img} alt={m.title} className="w-10 h-10 rounded-lg object-cover shadow-sm" />
+                  </td>
+                  <td className="p-4 font-medium text-gray-900">{m.title}</td>
+                  <td className="p-4">
+                    <span className="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full font-bold uppercase">
+                      {m.category}
+                    </span>
+                  </td>
+                  <td className="p-4 font-bold text-gray-700">
+                    {m.price === 0 ? 'Gratis' : `${m.price}€`}
+                  </td>
+                  {/* Columna de Acciones extendida */}
+                  <td className="p-4 text-right">
+                    
+                    {/* Botón Editar */}
+                    <button onClick={() => handleOpenModal(m)} className="text-indigo-600 hover:bg-indigo-50 p-2 rounded transition mr-1" title="Editar">
+                      ✎
+                    </button>
+
+                    {/* Botón Borrar */}
+                    <button onClick={() => handleDelete(m.id)} className="text-red-600 hover:bg-red-50 p-2 rounded transition mr-2" title="Borrar">
+                      🗑
+                    </button>
+
+                    {/* BOTÓN DE COMPRA (Solo para Admin probar) */}
+                    {isOwned ? (
+                        <span className="text-xs font-bold text-green-600 border border-green-200 bg-green-50 px-2 py-1 rounded ml-2">
+                            Adquirido
+                        </span>
+                    ) : (
+                        <button 
+                            onClick={() => onPurchase(m)}
+                            className="text-xs font-bold text-blue-600 border border-blue-200 bg-blue-50 px-3 py-1 rounded hover:bg-blue-100 transition ml-2"
+                            title="Simular compra de usuario"
+                        >
+                            COMPRAR
+                        </button>
+                    )}
+
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         {modules.length === 0 && (
