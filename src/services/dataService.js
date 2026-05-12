@@ -1,14 +1,12 @@
 import { APP_CONFIG } from "../config/constants";
 
-// Versión de los datos. Si cambiamos las fotos, cambiamos la versión 
-// y el navegador actualizará los cursos automáticamente.
+// Versión de los datos para forzar la actualización de fotos
 const DATA_VERSION = "v2_fotos_unsplash";
 
 const getModules = () => {
   const version = localStorage.getItem('kiby_data_version');
   const data = localStorage.getItem(APP_CONFIG.STORAGE_KEYS.MODULES);
   
-  // Si la versión no coincide o no hay datos, forzamos la carga de los cursos por defecto
   if (!data || version !== DATA_VERSION) {
     const defaults = [
       { 
@@ -37,7 +35,7 @@ const getModules = () => {
       }
     ];
     saveModules(defaults);
-    localStorage.setItem('kiby_data_version', DATA_VERSION); // Guardamos la nueva versión
+    localStorage.setItem('kiby_data_version', DATA_VERSION);
     return defaults;
   }
   return JSON.parse(data);
@@ -52,7 +50,6 @@ export const ModuleService = {
   getById: (id) => getModules().find(m => m.id == id),
   create: (moduleData) => {
     const list = getModules();
-    // Si el admin no pone URL, usamos esta foto por defecto 100% fiable
     const finalImg = moduleData.img || "https://placehold.co/600x400/161616/bf522b?text=Kiby+Course";
     const newModule = { ...moduleData, img: finalImg, id: Date.now() };
     saveModules([...list, newModule]);
@@ -89,6 +86,7 @@ export const ModuleService = {
 // --- CUPONES ---
 export const CouponService = {
   getAll: () => JSON.parse(localStorage.getItem(APP_CONFIG.STORAGE_KEYS.COUPONS)) || [],
+  
   create: (code, discount, img) => {
     const list = CouponService.getAll();
     const finalImg = img || `https://placehold.co/600x400/161616/bf522b?text=${code}`;
@@ -96,22 +94,24 @@ export const CouponService = {
     list.push(newCoupon);
     localStorage.setItem(APP_CONFIG.STORAGE_KEYS.COUPONS, JSON.stringify(list));
   },
+
   delete: (id) => {
     let list = CouponService.getAll();
     list = list.filter(c => c.id !== id);
     localStorage.setItem(APP_CONFIG.STORAGE_KEYS.COUPONS, JSON.stringify(list));
   },
+
   toggleStatus: (id) => {
     let list = CouponService.getAll();
     list = list.map(c => c.id === id ? { ...c, active: !c.active } : c);
     localStorage.setItem(APP_CONFIG.STORAGE_KEYS.COUPONS, JSON.stringify(list));
-  }
-  
-};
-  /** Validar cupón y obtener descuento */
+  },
+
+  // 🚀 AQUÍ ESTÁ LA FUNCIÓN QUE FALTABA 🚀
   applyCoupon: (code) => {
     const list = CouponService.getAll();
-    // Buscamos el cupón ignorando mayúsculas/minúsculas
+    // Busca el cupón ignorando mayúsculas/minúsculas y que esté activo
     const coupon = list.find(c => c.code.toLowerCase() === code.toLowerCase() && c.active);
-    return coupon || null; // Devuelve el objeto cupón o null si no existe/no está activo
-  };
+    return coupon || null; // Devuelve el cupón o null si no es válido
+  }
+};
