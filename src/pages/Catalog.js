@@ -79,6 +79,8 @@ const Catalog = ({ goToCheckout, refreshKey, isAdmin }) => {
                 <div className="mt-auto">
                   {isOwned ? (
                     <Button disabled variant="secondary" className="w-full text-sm">✅ Adquirido</Button>
+                  ) : isAdmin ? (
+                    <Button variant="dark" className="w-full text-sm" onClick={() => handleBuyClick(m)}>👨‍💼 Simular Compra</Button>
                   ) : (
                     <Button onClick={() => handleBuyClick(m)} className="w-full text-sm">
                       {isFree ? '🆓 Unirse Gratis' : '🛒 Comprar Módulo'}
@@ -88,7 +90,7 @@ const Catalog = ({ goToCheckout, refreshKey, isAdmin }) => {
               </div>
             </Card>
           );
-        })}
+        })} 
       </div>
     </div>
   );
