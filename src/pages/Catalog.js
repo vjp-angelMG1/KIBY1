@@ -56,13 +56,11 @@ const Catalog = ({ goToCheckout, isAdmin, userPurchases }) => {
                 
                 <div className="mt-4">
                   {isOwned ? (
-                    <Button disabled variant="secondary" className="w-full text-sm">✅ Adquirido</Button>
-                  ) : isAdmin ? (
-                    <Button variant="dark" className="w-full text-sm">👨‍💼 Modo Admin</Button>
+                  <Button disabled variant="secondary" className="w-full text-sm">✅ Adquirido</Button>
                   ) : (
-                    <Button onClick={() => goToCheckout(m)} className="w-full text-sm">
-                      {isFree ? '🆓 Unirse' : '🛒 Comprar'}
-                    </Button>
+                  <Button onClick={() => goToCheckout(m)} className="w-full text-sm">
+                  {isAdmin ? '🛒 Simular Compra' : (isFree ? '🆓 Unirse' : '🛒 Comprar')}
+                  </Button>
                   )}
                 </div>
               </div>
