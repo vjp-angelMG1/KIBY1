@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "./context/AuthContext";
-import { ModuleService } from "./services/dataService"; // ¡ESTA LÍNEA ES LA QUE FALTA!
+import { ModuleService } from "./services/dataService";
 import Login from "./pages/Login";
 import Catalog from "./pages/Catalog";
 import CouponManager from "./pages/CouponManager";
@@ -11,8 +11,8 @@ import ModuleDetail from "./pages/ModuleDetail";
 import Button from "./components/ui/Button";
 
 const Header = ({ currentView, setView, user, logout }) => {
-  // EL ROL AHORA VIENE DE LA BASE DE DATOS
-  const isAdmin = user?.role === 'admin'; 
+  // FORZAMOS: Si el correo es este, eres admin. Si no, leemos de la BD.
+  const isAdmin = user?.email === 'admin@kiby.com' || user?.role === 'admin'; 
 
   return (
     <header className="bg-[#161616] shadow-lg p-4 sticky top-0 z-50">
@@ -38,7 +38,11 @@ export default function App() {
   if (loading) return <div className="p-10 text-center text-gray-500">Cargando aplicación...</div>;
   if (!user) return <Login />;
 
-  const isAdmin = user?.email === 'admin@kiby.com';
+  // FORZAMOS: Si el correo es este, eres admin.
+  const isAdmin = user?.email === 'admin@kiby.com' || user?.role === 'admin';
+
+  // Esto imprimirá en la consola quién eres tú. Revisa que tu correo sea el correcto.
+  console.log("¿Quién está logueado?", user?.email, "¿Es admin?", isAdmin);
 
   const handlePurchase = async (module) => {
     await ModuleService.addPurchase(user.uid, module.id);
@@ -83,4 +87,4 @@ export default function App() {
       </main>
     </div>
   );
-}
+} 
