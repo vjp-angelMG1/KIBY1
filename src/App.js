@@ -38,7 +38,7 @@ export default function App() {
   if (loading) return <div className="p-10 text-center text-gray-500">Cargando aplicación...</div>;
   if (!user) return <Login />;
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.email === 'admin@kiby.com';
 
   const handlePurchase = async (module) => {
     await ModuleService.addPurchase(user.uid, module.id);
