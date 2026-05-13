@@ -10,6 +10,6 @@ const Card = ({ children, className = "", onClick }) => {
       {children}
     </div>
   );
-};
+}; 
 
 export default Card;
