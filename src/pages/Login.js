@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { login } from "../services/authService";
+import { login } from "../services/authService"; // Asegúrate de que importa de authService
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 

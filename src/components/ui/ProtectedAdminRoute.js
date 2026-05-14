@@ -6,15 +6,15 @@ const ProtectedAdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div className="p-10 text-center text-gray-500">Cargando...</div>;
+    return <div className="p-10 text-center text-gray-500">Cargando permisos...</div>;
   }
 
-  // Si no es admin, lo redirigimos a la tienda
+  // Si no está logueado o su rol NO es admin, lo echamos a la tienda
   if (!user || user.role !== 'admin') {
     return <Navigate to="/" replace />;
   }
 
-  // Si es admin, le dejamos pasar
+  // Si es admin, le dejamos ver el componente (AdminPanel)
   return children;
 };
 
