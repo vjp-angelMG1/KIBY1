@@ -109,6 +109,6 @@ const CouponManager = ({ isAdmin }) => {
       )}
     </div>
   );
-};
+}; 
 
 export default CouponManager;
