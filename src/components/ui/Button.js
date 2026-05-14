@@ -10,7 +10,7 @@ const Button = ({ children, onClick, variant = "primary", disabled = false, type
     danger: "bg-red-100 text-red-600 hover:bg-red-200"
   };
 
-  return (
+  return ( 
     <button 
       type={type}
       onClick={onClick} 
