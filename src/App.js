@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Routes, Route, Navigate, Link, useNavigate } from "react-router-dom"; // Quitado BrowserRouter
+import { Routes, Route, Navigate, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { ModuleService } from "./services/dataService";
 import Login from "./pages/Login";
@@ -11,7 +11,7 @@ import Checkout from "./pages/Checkout";
 import ModuleDetail from "./pages/ModuleDetail";
 import Button from "./components/ui/Button";
 
-// EL GUARDIÁN AHORA ESTÁ AQUÍ DENTRO
+// EL GUARDIÁN DE RUTAS
 const ProtectedAdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
@@ -28,7 +28,7 @@ const ProtectedAdminRoute = ({ children }) => {
   return children;
 };
 
-// Header adaptado a React Router
+// HEADER ADAPTADO Y LIMPIO
 const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -40,9 +40,14 @@ const Header = () => {
         <div className="font-extrabold text-2xl text-[#bf522b] cursor-pointer" onClick={() => navigate('/')}>Kiby</div>
         <nav className="flex gap-2 items-center flex-wrap">
           <Link to="/"><Button variant={window.location.pathname === '/' ? 'primary' : 'secondary'}>Tienda</Button></Link>
-          {!isAdmin && <Link to="/cupones"><Button variant={window.location.pathname === '/cupones' ? 'primary' : 'secondary'}>Cupones</Button></Link>}
+          
+          {/* El Admin necesita ver Cupones para gestionarlos (activar/desactivar). El alumno los ve para usarlos */}
+          <Link to="/cupones"><Button variant={window.location.pathname === '/cupones' ? 'primary' : 'secondary'}>Cupones</Button></Link>
+          
           <Link to="/perfil"><Button variant={window.location.pathname === '/perfil' ? 'primary' : 'secondary'}>Mi Cuenta</Button></Link>
+          
           {isAdmin && <Link to="/admin"><Button variant={window.location.pathname === '/admin' ? 'primary' : 'secondary'}>Panel Admin</Button></Link>}
+          
           <Button variant="danger" onClick={logout}>Salir</Button>
         </nav>
       </div>
@@ -52,7 +57,7 @@ const Header = () => {
 
 export default function App() {
   const { user, loading } = useAuth();
-  const navigate = useNavigate(); // Hook para redirigir programáticamente
+  const navigate = useNavigate(); 
   const [selectedModule, setSelectedModule] = useState(null);
 
   if (loading) return <div className="p-10 text-center text-gray-500">Cargando aplicación...</div>;
@@ -61,17 +66,15 @@ export default function App() {
   const handlePurchase = async (module) => {
     await ModuleService.addPurchase(user.uid, module.id);
     alert("✅ Pago completado. El módulo es tuyo.");
-    navigate('/perfil'); // Redirigimos al perfil tras comprar
+    navigate('/perfil'); 
   };
 
-  // Función para ir al checkout y redirigir la ruta
   const goToCheckout = (module) => {
     setSelectedModule(module);
     navigate('/checkout');
   };
 
   return (
-    // BrowserRouter eliminado de aquí
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
       <Header />
       <main className="container mx-auto py-8">
