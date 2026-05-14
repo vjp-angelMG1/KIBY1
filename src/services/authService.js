@@ -1,27 +1,39 @@
-import { initializeApp } from "firebase/app";
-import { 
-  getAuth, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged 
-} from "firebase/auth";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { subscribeToAuthChanges, logout as authLogout } from "../services/authService";
+import { db } from "../services/authService"; // Importamos db
+import { doc, getDoc } from "firebase/firestore";
 
-import { FIREBASE_CONFIG } from "../config/constants";
+const AuthContext = createContext(null);
 
-const app = initializeApp(FIREBASE_CONFIG);
-export const auth = getAuth(app);
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-export const login = async (email, password) => {
-  return signInWithEmailAndPassword(auth, email, password);
+  useEffect(() => {
+    const unsubscribe = subscribeToAuthChanges(async (authUser) => {
+      if (authUser) {
+        // LÓGICA DINÁMICA: Leemos el rol real desde Firestore
+        const snap = await getDoc(doc(db, 'users', authUser.uid));
+        const role = snap.data()?.role || 'user';
+        
+        // Guardamos el usuario con su rol real
+        setUser({ ...authUser, role });
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const logout = () => { authLogout(); };
+
+  return (
+    <AuthContext.Provider value={{ user, loading, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-export const logout = async () => {
-  return signOut(auth);
-};
-
-// Ya no expulsamos a los usuarios normales, cualquiera puede loguearse
-export const subscribeToAuthChanges = (callback) => {
-  return onAuthStateChanged(auth, (user) => {
-    callback(user);
-  });
-};
+export const useAuth = () => useContext(AuthContext);

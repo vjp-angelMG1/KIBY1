@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { ModuleService } from "./services/dataService";
 import Login from "./pages/Login";
@@ -9,20 +10,23 @@ import Profile from "./pages/Profile";
 import Checkout from "./pages/Checkout";
 import ModuleDetail from "./pages/ModuleDetail";
 import Button from "./components/ui/Button";
+import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 
-const Header = ({ currentView, setView, user, logout }) => {
-  // FORZAMOS: Si el correo es este, eres admin. Si no, leemos de la BD.
-  const isAdmin = user?.email === 'admin@kiby.com' || user?.role === 'admin'; 
+// Header adaptado a React Router
+const Header = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const isAdmin = user?.role === 'admin'; // ¡SIN HARDCODEAR! Directo de la BD
 
   return (
     <header className="bg-[#161616] shadow-lg p-4 sticky top-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
-        <div className="font-extrabold text-2xl text-[#bf522b]">Kiby</div>
+        <div className="font-extrabold text-2xl text-[#bf522b] cursor-pointer" onClick={() => navigate('/')}>Kiby</div>
         <nav className="flex gap-2 items-center flex-wrap">
-          <Button variant={currentView === 'catalog' ? 'primary' : 'secondary'} onClick={() => setView('catalog')}>Tienda</Button>
-          {!isAdmin && <Button variant={currentView === 'coupons' ? 'primary' : 'secondary'} onClick={() => setView('coupons')}>Cupones</Button>}
-          <Button variant={currentView === 'profile' ? 'primary' : 'secondary'} onClick={() => setView('profile')}>Mi Cuenta</Button>
-          {isAdmin && <Button variant={currentView === 'admin' ? 'primary' : 'secondary'} onClick={() => setView('admin')}>Panel Admin</Button>}
+          <Link to="/"><Button variant={window.location.pathname === '/' ? 'primary' : 'secondary'}>Tienda</Button></Link>
+          {!isAdmin && <Link to="/cupones"><Button variant={window.location.pathname === '/cupones' ? 'primary' : 'secondary'}>Cupones</Button></Link>}
+          <Link to="/perfil"><Button variant={window.location.pathname === '/perfil' ? 'primary' : 'secondary'}>Mi Cuenta</Button></Link>
+          {isAdmin && <Link to="/admin"><Button variant={window.location.pathname === '/admin' ? 'primary' : 'secondary'}>Panel Admin</Button></Link>}
           <Button variant="danger" onClick={logout}>Salir</Button>
         </nav>
       </div>
@@ -31,60 +35,42 @@ const Header = ({ currentView, setView, user, logout }) => {
 };
 
 export default function App() {
-  const { user, loading, logout } = useAuth();
-  const [view, setView] = useState('catalog');
+  const { user, loading } = useAuth();
   const [selectedModule, setSelectedModule] = useState(null);
 
   if (loading) return <div className="p-10 text-center text-gray-500">Cargando aplicación...</div>;
   if (!user) return <Login />;
 
-  // FORZAMOS: Si el correo es este, eres admin.
-  const isAdmin = user?.email === 'admin@kiby.com' || user?.role === 'admin';
-
-  // Esto imprimirá en la consola quién eres tú. Revisa que tu correo sea el correcto.
-  console.log("¿Quién está logueado?", user?.email, "¿Es admin?", isAdmin);
-
   const handlePurchase = async (module) => {
     await ModuleService.addPurchase(user.uid, module.id);
     alert("✅ Pago completado. El módulo es tuyo.");
-    setView('profile');
-  };
-
-  const goToCheckout = (module) => {
-    setSelectedModule(module);
-    setView('checkout');
-  };
-
-  const renderView = () => {
-    switch(view) {
-      case 'catalog': 
-        return <Catalog goToCheckout={goToCheckout} isAdmin={isAdmin} userPurchases={user.purchases || []} />;
-      case 'coupons': 
-        return <CouponManager isAdmin={isAdmin} />;
-      case 'admin': 
-        return isAdmin ? <AdminPanel /> : <Catalog goToCheckout={goToCheckout} isAdmin={isAdmin} userPurchases={user.purchases || []} />;
-      case 'profile': 
-        return <Profile goToStore={() => setView('catalog')} />;
-      case 'checkout': 
-        return <Checkout module={selectedModule} onPurchase={handlePurchase} goBack={() => setView('catalog')} />;
-      case 'content': 
-        return <ModuleDetail module={selectedModule} />;
-      default: 
-        return <Catalog goToCheckout={goToCheckout} isAdmin={isAdmin} userPurchases={user.purchases || []} />;
-    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-      <Header 
-        currentView={view} 
-        setView={(v, mod) => { setView(v); if(mod) setSelectedModule(mod); }} 
-        user={user} 
-        logout={logout} 
-      />
-      <main className="container mx-auto py-8">
-        {renderView()}
-      </main>
-    </div>
+    <BrowserRouter>
+      <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+        <Header />
+        <main className="container mx-auto py-8">
+          <Routes>
+            {/* Rutas públicas */}
+            <Route path="/" element={<Catalog goToCheckout={(m) => { setSelectedModule(m); }} isAdmin={user?.role === 'admin'} userPurchases={user.purchases || []} />} />
+            <Route path="/cupones" element={<CouponManager isAdmin={user?.role === 'admin'} />} />
+            <Route path="/perfil" element={<Profile goToStore={() => Navigate('/')} />} />
+            <Route path="/checkout" element={<Checkout module={selectedModule} onPurchase={handlePurchase} goBack={() => Navigate('/')} />} />
+            <Route path="/curso" element={<ModuleDetail module={selectedModule} />} />
+            
+            {/* RUTA PROTEGIDA: Solo Admins */}
+            <Route path="/admin" element={
+              <ProtectedAdminRoute>
+                <AdminPanel />
+              </ProtectedAdminRoute>
+            } />
+
+            {/* Ruta por defecto */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+      </div>
+    </BrowserRouter>
   );
-} 
+}

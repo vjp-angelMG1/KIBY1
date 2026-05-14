@@ -9,6 +9,7 @@ const AdminPanel = () => {
   const [modules, setModules] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingModule, setEditingModule] = useState(null);
+  const [formError, setFormError] = useState(""); // Estado para errores de validación
   const [formData, setFormData] = useState({ title: "", desc: "", category: "Programación", price: 0, img: "", longDesc: "", imgList: "" });
 
   // Diccionario de fotos reales por categoría (Se autocompleta)
@@ -27,6 +28,7 @@ const AdminPanel = () => {
   };
 
   const handleOpenModal = (module = null) => {
+    setFormError(""); // Limpiamos errores previos al abrir
     if (module) { 
       setEditingModule(module); 
       setFormData({ ...module, imgList: module.images ? module.images.join(', ') : '' }); 
@@ -47,8 +49,28 @@ const AdminPanel = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingModule) { await ModuleService.update({ ...formData, id: editingModule.id }); } 
-    else { await ModuleService.create(formData); }
+    setFormError(""); // Limpiamos errores previos al enviar
+
+    // --- VALIDACIONES ---
+    if (formData.title.trim().length < 3) {
+      setFormError("El título debe tener al menos 3 caracteres.");
+      return;
+    }
+    if (formData.desc.trim().length < 10) {
+      setFormError("La descripción corta es demasiado breve (mínimo 10 caracteres).");
+      return;
+    }
+    if (formData.price === "" || parseFloat(formData.price) < 0) {
+      setFormError("El precio no puede estar vacío ni ser negativo.");
+      return;
+    }
+    // -------------------
+
+    if (editingModule) { 
+      await ModuleService.update({ ...formData, id: editingModule.id }); 
+    } else { 
+      await ModuleService.create(formData); 
+    }
     handleCloseModal();
     loadModules();
   };
@@ -103,6 +125,14 @@ const AdminPanel = () => {
           <Card className="w-full max-w-lg bg-white relative p-6">
             <button onClick={handleCloseModal} className="absolute top-4 right-4 text-gray-400 hover:text-[#161616] text-2xl">&times;</button>
             <h3 className="text-xl font-bold mb-4">{editingModule ? 'Editar' : 'Nuevo'} Módulo</h3>
+            
+            {/* MENSAJE DE ERROR DE VALIDACIÓN */}
+            {formError && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <span className="block sm:inline">{formError}</span>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input label="Título" name="title" value={formData.title} onChange={handleChange} required />
               <Input label="Descripción Corta" name="desc" value={formData.desc} onChange={handleChange} required />
