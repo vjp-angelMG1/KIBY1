@@ -10,13 +10,29 @@ import Profile from "./pages/Profile";
 import Checkout from "./pages/Checkout";
 import ModuleDetail from "./pages/ModuleDetail";
 import Button from "./components/ui/Button";
-import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
+
+// EL GUARDIÁN AHORA ESTÁ AQUÍ DENTRO
+const ProtectedAdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div className="p-10 text-center text-gray-500">Cargando permisos...</div>;
+  }
+
+  // Si no es admin, lo echamos a la tienda
+  if (!user || user.role !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
+
+  // Si es admin, le dejamos pasar
+  return children;
+};
 
 // Header adaptado a React Router
 const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const isAdmin = user?.role === 'admin'; // ¡SIN HARDCODEAR! Directo de la BD
+  const isAdmin = user?.role === 'admin'; // Leído dinámicamente de la BD
 
   return (
     <header className="bg-[#161616] shadow-lg p-4 sticky top-0 z-50">
@@ -53,7 +69,7 @@ export default function App() {
         <main className="container mx-auto py-8">
           <Routes>
             {/* Rutas públicas */}
-            <Route path="/" element={<Catalog goToCheckout={(m) => { setSelectedModule(m); }} isAdmin={user?.role === 'admin'} userPurchases={user.purchases || []} />} />
+            <Route path="/" element={<Catalog goToCheckout={(m) => setSelectedModule(m)} isAdmin={user?.role === 'admin'} userPurchases={user.purchases || []} />} />
             <Route path="/cupones" element={<CouponManager isAdmin={user?.role === 'admin'} />} />
             <Route path="/perfil" element={<Profile goToStore={() => Navigate('/')} />} />
             <Route path="/checkout" element={<Checkout module={selectedModule} onPurchase={handlePurchase} goBack={() => Navigate('/')} />} />
