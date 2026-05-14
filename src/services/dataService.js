@@ -28,7 +28,7 @@ const getModules = () => {
         id: 2, 
         title: "Diseño UI/UX", 
         desc: "Principios básicos.", 
-        category: "Diseño", 
+        category: "Diseño",   
         price: 0, 
         img: "https://images.unsplash.com/photo-1561070791-2526d30994b5?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
         longDesc: "Comprende la mentalidad del diseño centrado en el usuario. Abordaremos los principios fundamentales de la interfaz de usuario (UI) y la experiencia de usuario (UX), creación de wireframes, tipografía efectiva, teoría del color y cómo usar Figma para prototipar tus primeras aplicaciones de manera profesional.",
