@@ -1,17 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Estilos Globales Premium */
+html {
+  scroll-behavior: smooth; /* Scroll suave al hacer clic en anclas */
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  /* Fuente Inter (la usan Apple, Stripe, Vercel, etc.) seguida de las del sistema */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Fondo base ligeramente gris para que las tarjetas blancas resalten más */
+  background-color: #f8f9fa; 
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* Color de selección de texto (Coherencia de marca) */
+::selection {
+  background-color: rgba(191, 82, 43, 0.2); /* Tu naranja #bf522b con transparencia */
+  color: #161616; /* Tu negro elegante */
+}
+
+::-moz-selection {
+  background-color: rgba(191, 82, 43, 0.2);
+  color: #161616;
+}
+
+/* =========================================
+   ANIMACIONES PREMIUM (Para Tarjetas y Botones)
+   ========================================= */
+
+/* Efecto de brillo que pasa por la tarjeta al hacer Hover */
+@keyframes shine {
+  0% { left: -100%; }
+  20% { left: 200%; }
+  100% { left: 200%; }
+}
+
+/* Efecto de flotación sutil (Opcional, para elementos destacados) */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0px); }
+}
+
+.shine-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-effect::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -100%;
+  width: 50%;
+  height: 200%;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent);
+  transform: skewX(-25deg);
+  z-index: 1;
+  pointer-events: none; /* Para que no bloquee clics */
+}
+
+.shine-effect:hover::after {
+  animation: shine 0.75s ease-in-out;
+}
+
+/* Efecto de desenfoque tipo Glassmorphism (Para badges y cabeceras) */
+.glass-effect {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }

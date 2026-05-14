@@ -1,16 +1,19 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom'; // 1. Importar BrowserRouter
 import './index.css';
 import App from './App';
-import { AuthProvider } from './context/AuthContext'; // 1. Importar esto
+import { AuthProvider } from './context/AuthContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
   <React.StrictMode>
-    {/* 2. Envolver App con AuthProvider */}
-    <AuthProvider>
-      <App />
-    </AuthProvider>
-  </React.StrictMode>,
+    {/* 2. Envolver con BrowserRouter primero, luego AuthProvider */}
+    <BrowserRouter>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </BrowserRouter>
+  </React.StrictMode>
 );

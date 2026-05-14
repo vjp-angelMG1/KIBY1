@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, Link, useNavigate } from "react-router-dom"; // Quitado BrowserRouter
 import { useAuth } from "./context/AuthContext";
 import { ModuleService } from "./services/dataService";
 import Login from "./pages/Login";
@@ -52,6 +52,7 @@ const Header = () => {
 
 export default function App() {
   const { user, loading } = useAuth();
+  const navigate = useNavigate(); // Hook para redirigir programáticamente
   const [selectedModule, setSelectedModule] = useState(null);
 
   if (loading) return <div className="p-10 text-center text-gray-500">Cargando aplicación...</div>;
@@ -60,33 +61,39 @@ export default function App() {
   const handlePurchase = async (module) => {
     await ModuleService.addPurchase(user.uid, module.id);
     alert("✅ Pago completado. El módulo es tuyo.");
+    navigate('/perfil'); // Redirigimos al perfil tras comprar
+  };
+
+  // Función para ir al checkout y redirigir la ruta
+  const goToCheckout = (module) => {
+    setSelectedModule(module);
+    navigate('/checkout');
   };
 
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-        <Header />
-        <main className="container mx-auto py-8">
-          <Routes>
-            {/* Rutas públicas */}
-            <Route path="/" element={<Catalog goToCheckout={(m) => setSelectedModule(m)} isAdmin={user?.role === 'admin'} userPurchases={user.purchases || []} />} />
-            <Route path="/cupones" element={<CouponManager isAdmin={user?.role === 'admin'} />} />
-            <Route path="/perfil" element={<Profile goToStore={() => Navigate('/')} />} />
-            <Route path="/checkout" element={<Checkout module={selectedModule} onPurchase={handlePurchase} goBack={() => Navigate('/')} />} />
-            <Route path="/curso" element={<ModuleDetail module={selectedModule} />} />
-            
-            {/* RUTA PROTEGIDA: Solo Admins */}
-            <Route path="/admin" element={
-              <ProtectedAdminRoute>
-                <AdminPanel />
-              </ProtectedAdminRoute>
-            } />
+    // BrowserRouter eliminado de aquí
+    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+      <Header />
+      <main className="container mx-auto py-8">
+        <Routes>
+          {/* Rutas públicas */}
+          <Route path="/" element={<Catalog goToCheckout={goToCheckout} isAdmin={user?.role === 'admin'} userPurchases={user.purchases || []} />} />
+          <Route path="/cupones" element={<CouponManager isAdmin={user?.role === 'admin'} />} />
+          <Route path="/perfil" element={<Profile goToStore={() => navigate('/')} />} />
+          <Route path="/checkout" element={<Checkout module={selectedModule} onPurchase={handlePurchase} goBack={() => navigate('/')} />} />
+          <Route path="/curso" element={<ModuleDetail module={selectedModule} />} />
+          
+          {/* RUTA PROTEGIDA: Solo Admins */}
+          <Route path="/admin" element={
+            <ProtectedAdminRoute>
+              <AdminPanel />
+            </ProtectedAdminRoute>
+          } />
 
-            {/* Ruta por defecto */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-      </div>
-    </BrowserRouter>
+          {/* Ruta por defecto */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+    </div>
   );
 }
