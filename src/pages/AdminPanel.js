@@ -9,10 +9,12 @@ const AdminPanel = () => {
   const [modules, setModules] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingModule, setEditingModule] = useState(null);
-  const [formError, setFormError] = useState(""); // Estado para errores de validación
+  const [formError, setFormError] = useState("");
   const [formData, setFormData] = useState({ title: "", desc: "", category: "Programación", price: 0, img: "", longDesc: "", imgList: "" });
+  
+  // Estado para el modal de compradores
+  const [buyersModal, setBuyersModal] = useState({ isOpen: false, moduleId: null, buyers: [], loading: false });
 
-  // Diccionario de fotos reales por categoría (Se autocompleta)
   const categoryImages = {
     "Programación": "https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
     "Diseño": "https://images.unsplash.com/photo-1561070791-2526d30994b5?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
@@ -28,7 +30,7 @@ const AdminPanel = () => {
   };
 
   const handleOpenModal = (module = null) => {
-    setFormError(""); // Limpiamos errores previos al abrir
+    setFormError("");
     if (module) { 
       setEditingModule(module); 
       setFormData({ ...module, imgList: module.images ? module.images.join(', ') : '' }); 
@@ -41,42 +43,32 @@ const AdminPanel = () => {
 
   const handleCloseModal = () => { setIsModalOpen(false); };
   const handleChange = (e) => { setFormData(prev => ({ ...prev, [e.target.name]: e.target.value })); };
-  
-  // Función mágica para rellenar la foto
   const handleAutoFillImage = () => { 
     setFormData(prev => ({ ...prev, img: categoryImages[prev.category] || "https://placehold.co/600x400/161616/bf522b?text=Curso" })); 
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormError(""); // Limpiamos errores previos al enviar
+    setFormError("");
+    if (formData.title.trim().length < 3) { setFormError("El título debe tener al menos 3 caracteres."); return; }
+    if (formData.desc.trim().length < 10) { setFormError("La descripción es demasiado corta."); return; }
+    if (formData.price === "" || parseFloat(formData.price) < 0) { setFormError("El precio no puede ser negativo."); return; }
 
-    // --- VALIDACIONES ---
-    if (formData.title.trim().length < 3) {
-      setFormError("El título debe tener al menos 3 caracteres.");
-      return;
-    }
-    if (formData.desc.trim().length < 10) {
-      setFormError("La descripción corta es demasiado breve (mínimo 10 caracteres).");
-      return;
-    }
-    if (formData.price === "" || parseFloat(formData.price) < 0) {
-      setFormError("El precio no puede estar vacío ni ser negativo.");
-      return;
-    }
-    // -------------------
-
-    if (editingModule) { 
-      await ModuleService.update({ ...formData, id: editingModule.id }); 
-    } else { 
-      await ModuleService.create(formData); 
-    }
+    if (editingModule) { await ModuleService.update({ ...formData, id: editingModule.id }); } 
+    else { await ModuleService.create(formData); }
     handleCloseModal();
     loadModules();
   };
 
   const handleDelete = async (id) => {
     if (window.confirm("¿Estás seguro?")) { await ModuleService.delete(id); loadModules(); }
+  };
+
+  // FUNCIÓN PARA VER COMPRADORES
+  const handleViewBuyers = async (moduleId) => {
+    setBuyersModal({ isOpen: true, moduleId, buyers: [], loading: true });
+    const emails = await ModuleService.getBuyersForModule(moduleId);
+    setBuyersModal({ isOpen: true, moduleId, buyers: emails, loading: false });
   };
 
   return (
@@ -99,7 +91,7 @@ const AdminPanel = () => {
           </thead>
           <tbody className="divide-y">
             {modules.map(m => (
-              <tr key={m.id} className="hover:bg-gray-50">
+              <tr key={m.id} className="hover:bg-gray-50 transition-colors">
                 <td className="p-4">
                   <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#161616] flex items-center justify-center">
                     <img src={m.img} alt={m.title} className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='block'; }} />
@@ -110,8 +102,9 @@ const AdminPanel = () => {
                 <td className="p-4"><span className="bg-[#bf522b]/10 text-[#bf522b] text-xs px-2 py-1 rounded-full font-bold uppercase">{m.category}</span></td>
                 <td className="p-4 font-bold">{m.price === 0 ? 'Gratis' : `${m.price}€`}</td>
                 <td className="p-4 text-right space-x-2">
-                  <button onClick={() => handleOpenModal(m)} className="text-[#bf522b] hover:bg-[#bf522b]/10 p-2 rounded">✎</button>
-                  <button onClick={() => handleDelete(m.id)} className="text-red-600 hover:bg-red-50 p-2 rounded">🗑</button>
+                  <button onClick={() => handleViewBuyers(m.id)} className="text-blue-600 hover:bg-blue-50 p-2 rounded transition" title="Ver Compradores">👥</button>
+                  <button onClick={() => handleOpenModal(m)} className="text-[#bf522b] hover:bg-[#bf522b]/10 p-2 rounded transition" title="Editar">✎</button>
+                  <button onClick={() => handleDelete(m.id)} className="text-red-600 hover:bg-red-50 p-2 rounded transition" title="Borrar">🗑</button>
                 </td>
               </tr>
             ))}
@@ -120,15 +113,44 @@ const AdminPanel = () => {
         {modules.length === 0 && <div className="p-8 text-center text-gray-400">No hay módulos en la nube. Crea el primero.</div>}
       </div>
 
+      {/* MODAL DE COMPRADORES */}
+      {buyersModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-md bg-white relative p-8">
+            <button onClick={() => setBuyersModal({ ...buyersModal, isOpen: false })} className="absolute top-4 right-4 text-gray-400 hover:text-[#161616] text-2xl">&times;</button>
+            <h3 className="text-2xl font-bold mb-6 text-[#161616]">👥 Clientes que lo compraron</h3>
+            
+            {buyersModal.loading ? (
+              <div className="text-center text-gray-500 py-8">Buscando en la base de datos...</div>
+            ) : buyersModal.buyers.length === 0 ? (
+              <div className="text-center text-gray-400 py-8 bg-gray-50 rounded-lg border border-dashed">
+                Nadie ha comprado este módulo aún.
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-60 overflow-y-auto">
+                {buyersModal.buyers.map((email, index) => (
+                  <div key={index} className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg border">
+                    <div className="w-8 h-8 bg-[#bf522b]/10 rounded-full flex items-center justify-center text-[#bf522b] font-bold text-sm">
+                      {email.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="text-[#161616] font-medium text-sm">{email}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
+
+      {/* MODAL DE CREAR/EDITAR */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <Card className="w-full max-w-lg bg-white relative p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-lg bg-white relative p-8">
             <button onClick={handleCloseModal} className="absolute top-4 right-4 text-gray-400 hover:text-[#161616] text-2xl">&times;</button>
             <h3 className="text-xl font-bold mb-4">{editingModule ? 'Editar' : 'Nuevo'} Módulo</h3>
             
-            {/* MENSAJE DE ERROR DE VALIDACIÓN */}
             {formError && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
                 <span className="block sm:inline">{formError}</span>
               </div>
             )}
@@ -143,17 +165,13 @@ const AdminPanel = () => {
                 </select>
               </div>
               <Input label="Precio (€)" type="number" name="price" value={formData.price} onChange={handleChange} required />
-              
-              {/* CAMPO DE IMAGEN CON BOTÓN MÁGICO */}
               <div>
                 <label className="block text-sm font-semibold mb-1">URL Imagen</label>
                 <div className="flex gap-2">
                   <input type="url" name="img" value={formData.img} onChange={handleChange} className="w-full p-2 border rounded focus:ring-2 focus:ring-[#bf522b] focus:outline-none text-sm" placeholder="Se rellena automáticamente" />
-                  <button type="button" onClick={handleAutoFillImage} className="bg-[#161616] text-white px-3 py-2 rounded-md text-xs font-bold hover:bg-gray-800 whitespace-nowrap">🌐 Foto Web</button>
+                  <button type="button" onClick={handleAutoFillImage} className="bg-[#161616] text-white px-3 py-2 rounded-md text-xs font-bold hover:bg-gray-800 whitespace-nowrap">🌐 Foto</button>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">Pulsa "Foto Web" o déjalo vacío para generar una automática.</p>
               </div>
-
               <div className="flex justify-end gap-3 pt-4 border-t">
                 <Button type="button" variant="secondary" onClick={handleCloseModal}>Cancelar</Button>
                 <Button type="submit">Guardar en Nube ☁️</Button>
