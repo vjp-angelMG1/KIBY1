@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { subscribeToAuthChanges, logout as authLogout, db } from "../services/authService";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore"; // Añadimos setDoc
 
 const AuthContext = createContext(null);
 
@@ -11,14 +11,26 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = subscribeToAuthChanges(async (authUser) => {
       if (authUser) {
-        // LÓGICA DINÁMICA: Leemos el rol real desde Firestore
         try {
-          const snap = await getDoc(doc(db, 'users', authUser.uid));
-          const role = snap.data()?.role || 'user';
-          setUser({ ...authUser, role });
+          const userRef = doc(db, 'users', authUser.uid);
+          const snap = await getDoc(userRef);
+
+          if (snap.exists()) {
+            // Si la ficha ya existe, leemos el rol que tenga en la base de datos
+            const role = snap.data()?.role || 'user';
+            setUser({ ...authUser, role });
+          } else {
+            // Si la ficha NO existe (primera vez que entra), LA CREAMOS AUTOMÁTICAMENTE
+            await setDoc(userRef, { 
+              email: authUser.email, 
+              role: 'user', 
+              purchases: [] 
+            });
+            setUser({ ...authUser, role: 'user' });
+          }
         } catch (error) {
-          console.error("Error leyendo el rol:", error);
-          setUser({ ...authUser, role: 'user' }); // Si falla, por seguridad es user
+          console.error("Error leyendo/creando el usuario:", error);
+          setUser({ ...authUser, role: 'user' }); // Fallback por seguridad
         }
       } else {
         setUser(null);
