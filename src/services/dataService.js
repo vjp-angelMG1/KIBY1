@@ -20,9 +20,13 @@ export const ModuleService = {
   create: async (moduleData) => {
     const finalImg = moduleData.img || "https://placehold.co/600x400/161616/bf522b?text=Kiby+Course";
     const images = moduleData.imgList ? moduleData.imgList.split(',').map(url => url.trim()).filter(url => url !== '') : [];
+    
+    // NUEVO: Convertir el string de características separadas por coma en un Array
+    const features = moduleData.features ? moduleData.features.split(',').map(f => f.trim()).filter(f => f !== '') : [];
+    
     const price = parseFloat(moduleData.price) || 0;
-    const finalModuleData = { ...moduleData, img: finalImg, images, price };
-    delete finalModuleData.imgList;
+    const finalModuleData = { ...moduleData, img: finalImg, images, features, price };
+    delete finalModuleData.imgList; // Borramos el string temporal
     
     await addDoc(collection(db, "modules"), finalModuleData);
   },
@@ -30,8 +34,14 @@ export const ModuleService = {
   update: async (updatedModule) => {
     const { id, ...data } = updatedModule;
     const images = data.imgList ? data.imgList.split(',').map(url => url.trim()).filter(url => url !== '') : data.images;
+    
+    // NUEVO: Convertir el string de características en Array al actualizar también
+    const features = data.features && typeof data.features === 'string' 
+      ? data.features.split(',').map(f => f.trim()).filter(f => f !== '') 
+      : data.features; // Si ya es array o no existe, lo dejamos igual
+    
     const price = parseFloat(data.price) || 0;
-    const finalData = { ...data, images, price };
+    const finalData = { ...data, images, features, price };
     delete finalData.imgList;
     
     const docRef = doc(db, "modules", id);
@@ -62,7 +72,7 @@ export const ModuleService = {
     return allModules.filter(m => myIds.includes(m.id));
   },
 
-  // 🚀 NUEVA FUNCIÓN: Obtener los compradores de un módulo específico
+  // Obtener los compradores de un módulo específico
   getBuyersForModule: async (moduleId) => {
     const q = query(collection(db, "users"), where("purchases", "array-contains", moduleId));
     const snapshot = await getDocs(q);
@@ -103,4 +113,4 @@ export const CouponService = {
     }
     return null;
   }
-};
+}; 
