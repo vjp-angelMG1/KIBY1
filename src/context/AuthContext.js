@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
 
     return () => unsubscribe();
   }, []);
-
+  
   const logout = () => { authLogout(); };
 
   return (
