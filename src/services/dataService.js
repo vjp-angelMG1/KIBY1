@@ -111,6 +111,6 @@ export const CouponService = {
     if (!snapshot.empty) {
       return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
     }
-    return null;
+    return null; 
   }
 }; 
