@@ -6,82 +6,99 @@ import Input from "../components/ui/Input";
 import { APP_CONFIG } from "../config/constants";
 
 const AdminPanel = () => {
-  const [modules, setModules] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modulesList, setModulesList] = useState([]);
+  const [isModuleModalOpen, setIsModuleModalOpen] = useState(false);
   const [editingModule, setEditingModule] = useState(null);
-  const [formError, setFormError] = useState("");
-  const [formData, setFormData] = useState({ title: "", desc: "", category: "Programación", price: 0, img: "", longDesc: "", imgList: "", features: "" });
+  const [formValidationError, setFormValidationError] = useState("");
+  const [moduleFormData, setModuleFormData] = useState({ 
+    title: "", desc: "", category: "Programación", price: 0, img: "", longDesc: "", imgList: "", features: "" 
+  });
   
   const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
-  const [couponCode, setCouponCode] = useState("");
-  const [couponDiscount, setCouponDiscount] = useState("");
-  const [buyersModal, setBuyersModal] = useState({ isOpen: false, moduleId: null, buyers: [], loading: false });
+  const [newCouponCode, setNewCouponCode] = useState("");
+  const [newCouponDiscount, setNewCouponDiscount] = useState("");
+  
+  const [buyersModalData, setBuyersModalData] = useState({ isOpen: false, moduleId: null, buyersList: [], isLoading: false });
 
-  const categoryImages = {
+  const categoryDefaultImages = {
     "Programación": "https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
     "Diseño": "https://images.unsplash.com/photo-1561070791-2526d30994b5?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
     "Marketing": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
     "Negocios": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80"
   };
 
-  useEffect(() => { loadModules(); }, []);
+  useEffect(() => { loadModulesFromDatabase(); }, []);
 
-  const loadModules = async () => {
-    const data = await ModuleService.getAll();
-    setModules(data);
+  const loadModulesFromDatabase = async () => {
+    const fetchedModules = await ModuleService.getAll();
+    setModulesList(fetchedModules);
   };
 
-  const handleOpenModal = (module = null) => {
-    setFormError("");
-    if (module) { 
-      setEditingModule(module); 
-      setFormData({ 
-        ...module, 
-        imgList: module.images ? module.images.join(', ') : '', 
-        features: module.features ? module.features.join(', ') : '' // Convertimos array a texto
+  const handleOpenModuleModal = (moduleToEdit = null) => {
+    setFormValidationError("");
+    if (moduleToEdit) { 
+      setEditingModule(moduleToEdit); 
+      setModuleFormData({ 
+        ...moduleToEdit, 
+        imgList: moduleToEdit.images ? moduleToEdit.images.join(', ') : '', 
+        features: moduleToEdit.features ? moduleToEdit.features.join(', ') : '' 
       }); 
     } else { 
       setEditingModule(null); 
-      setFormData({ title: "", desc: "", category: "Programación", price: 0, img: "", longDesc: "", imgList: "", features: "" }); 
+      setModuleFormData({ title: "", desc: "", category: "Programación", price: 0, img: "", longDesc: "", imgList: "", features: "" }); 
     }
-    setIsModalOpen(true);
+    setIsModuleModalOpen(true);
   };
 
-  const handleCloseModal = () => { setIsModalOpen(false); };
-  const handleChange = (e) => { setFormData(prev => ({ ...prev, [e.target.name]: e.target.value })); };
+  const handleCloseModuleModal = () => { setIsModuleModalOpen(false); };
+  
+  const handleFormInputChange = (event) => { 
+    const { name, value } = event.target; 
+    setModuleFormData(previousData => ({ ...previousData, [name]: value })); 
+  };
+  
   const handleAutoFillImage = () => { 
-    setFormData(prev => ({ ...prev, img: categoryImages[prev.category] || "https://placehold.co/600x400/161616/bf522b?text=Curso" })); 
+    const defaultImage = categoryDefaultImages[moduleFormData.category] || "https://placehold.co/600x400/161616/bf522b?text=Curso";
+    setModuleFormData(previousData => ({ ...previousData, img: defaultImage })); 
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setFormError("");
-    if (formData.title.trim().length < 3) { setFormError("El título debe tener al menos 3 caracteres."); return; }
-    if (formData.price === "" || parseFloat(formData.price) < 0) { setFormError("El precio no puede ser negativo."); return; }
+  const handleModuleSubmit = async (event) => {
+    event.preventDefault();
+    setFormValidationError("");
+    
+    if (moduleFormData.title.trim().length < 3) { setFormValidationError("El título debe tener al menos 3 caracteres."); return; }
+    if (moduleFormData.price === "" || parseFloat(moduleFormData.price) < 0) { setFormValidationError("El precio no puede ser negativo."); return; }
 
-    // Preparamos los datos (dataService se encargará de convertir features e imgList a arrays)
-    if (editingModule) { await ModuleService.update({ ...formData, id: editingModule.id }); } 
-    else { await ModuleService.create(formData); }
-    handleCloseModal();
-    loadModules();
+    if (editingModule) { 
+      await ModuleService.update({ ...moduleFormData, id: editingModule.id }); 
+    } else { 
+      await ModuleService.create(moduleFormData); 
+    }
+    handleCloseModuleModal();
+    loadModulesFromDatabase();
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("¿Estás seguro?")) { await ModuleService.delete(id); loadModules(); }
+  const handleModuleDelete = async (moduleIdToDelete) => {
+    if (window.confirm("¿Estás seguro de eliminar este módulo?")) { 
+      await ModuleService.delete(moduleIdToDelete); 
+      loadModulesFromDatabase(); 
+    }
   };
 
-  const handleViewBuyers = async (moduleId) => {
-    setBuyersModal({ isOpen: true, moduleId, buyers: [], loading: true });
-    const emails = await ModuleService.getBuyersForModule(moduleId);
-    setBuyersModal({ isOpen: true, moduleId, buyers: emails, loading: false });
+  const handleViewBuyers = async (moduleIdToQuery) => {
+    setBuyersModalData({ isOpen: true, moduleId: moduleIdToQuery, buyersList: [], isLoading: true });
+    const buyerEmails = await ModuleService.getBuyersForModule(moduleIdToQuery);
+    setBuyersModalData({ isOpen: true, moduleId: moduleIdToQuery, buyersList: buyerEmails, isLoading: false });
   };
 
-  const handleCreateCoupon = async (e) => {
-    e.preventDefault();
-    if (!couponCode || !couponDiscount) return;
-    const finalImg = `https://placehold.co/600x400/161616/bf522b?text=${couponCode}`;
-    await CouponService.create(couponCode, couponDiscount, finalImg);
-    setCouponCode(""); setCouponDiscount(""); setIsCouponModalOpen(false);
+  const handleCouponCreation = async (event) => {
+    event.preventDefault();
+    if (!newCouponCode || !newCouponDiscount) return;
+    const defaultCouponImg = `https://placehold.co/600x400/161616/bf522b?text=${newCouponCode}`;
+    await CouponService.create(newCouponCode, newCouponDiscount, defaultCouponImg);
+    setNewCouponCode(""); 
+    setNewCouponDiscount(""); 
+    setIsCouponModalOpen(false);
     alert("✅ Cupón creado con éxito.");
   };
 
@@ -94,7 +111,7 @@ const AdminPanel = () => {
         </div>
         <div className="flex gap-3">
           <Button variant="secondary" onClick={() => setIsCouponModalOpen(true)}>🎫 Crear Cupón</Button>
-          <Button onClick={() => handleOpenModal()}>+ Nuevo Módulo</Button>
+          <Button onClick={() => handleOpenModuleModal()}>+ Nuevo Módulo</Button>
         </div>
       </div>
 
@@ -113,25 +130,25 @@ const AdminPanel = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {modules.map(m => (
-                <tr key={m.id} className="hover:bg-gray-50 transition-colors">
+              {modulesList.map(moduleItem => (
+                <tr key={moduleItem.id} className="hover:bg-gray-50 transition-colors">
                   <td className="p-4">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#161616] flex items-center justify-center shadow-sm flex-shrink-0">
-                        <img src={m.img} alt={m.title} className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='block'; }} />
-                        <span className="hidden text-[#bf522b] font-bold text-sm">{m.title.charAt(0)}</span>
+                        <img src={moduleItem.img} alt={moduleItem.title} className="w-full h-full object-cover" onError={(imgEvent) => { imgEvent.target.style.display='none'; imgEvent.target.nextSibling.style.display='block'; }} />
+                        <span className="hidden text-[#bf522b] font-bold text-sm">{moduleItem.title.charAt(0)}</span>
                       </div>
                       <div>
-                        <p className="font-bold text-[#161616]">{m.title}</p>
-                        <p className="text-xs text-gray-500 truncate max-w-[200px]">{m.desc}</p>
+                        <p className="font-bold text-[#161616]">{moduleItem.title}</p>
+                        <p className="text-xs text-gray-500 truncate max-w-[200px]">{moduleItem.desc}</p>
                       </div>
                     </div>
                   </td>
                   <td className="p-4">
                     <div className="flex flex-wrap gap-1 max-w-[250px]">
-                      {m.features && m.features.length > 0 ? (
-                        m.features.map((f, i) => (
-                          <span key={i} className="bg-[#bf522b]/10 text-[#bf522b] text-[10px] px-2 py-0.5 rounded font-bold uppercase">{f}</span>
+                      {moduleItem.features && moduleItem.features.length > 0 ? (
+                        moduleItem.features.map((featureName, featureIndex) => (
+                          <span key={featureIndex} className="bg-[#bf522b]/10 text-[#bf522b] text-[10px] px-2 py-0.5 rounded font-bold uppercase">{featureName}</span>
                         ))
                       ) : (
                         <span className="text-xs text-gray-400">Sin características</span>
@@ -139,34 +156,34 @@ const AdminPanel = () => {
                     </div>
                   </td>
                   <td className="p-4">
-                    <span className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider block w-fit mb-2">{m.category}</span>
-                    <span className="font-extrabold text-[#161616]">{m.price === 0 ? 'Gratis' : `${m.price}€`}</span>
+                    <span className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider block w-fit mb-2">{moduleItem.category}</span>
+                    <span className="font-extrabold text-[#161616]">{moduleItem.price === 0 ? 'Gratis' : `${moduleItem.price}€`}</span>
                   </td>
                   <td className="p-4 text-right space-x-1 whitespace-nowrap">
-                    <button onClick={() => handleViewBuyers(m.id)} className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition" title="Compradores">👥</button>
-                    <button onClick={() => handleOpenModal(m)} className="text-[#bf522b] hover:bg-[#bf522b]/10 p-2 rounded-lg transition" title="Editar">✎</button>
-                    <button onClick={() => handleDelete(m.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition" title="Borrar">🗑</button>
+                    <button onClick={() => handleViewBuyers(moduleItem.id)} className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition" title="Compradores">👥</button>
+                    <button onClick={() => handleOpenModuleModal(moduleItem)} className="text-[#bf522b] hover:bg-[#bf522b]/10 p-2 rounded-lg transition" title="Editar">✎</button>
+                    <button onClick={() => handleModuleDelete(moduleItem.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition" title="Borrar">🗑</button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        {modules.length === 0 && <div className="p-12 text-center text-gray-400">No hay módulos.</div>}
+        {modulesList.length === 0 && <div className="p-12 text-center text-gray-400">No hay módulos.</div>}
       </div>
 
       {/* MODAL COMPRADORES */}
-      {buyersModal.isOpen && (
+      {buyersModalData.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <Card className="w-full max-w-md bg-white relative p-8">
-            <button onClick={() => setBuyersModal({ ...buyersModal, isOpen: false })} className="absolute top-4 right-4 text-gray-400 hover:text-[#161616] text-2xl">&times;</button>
+            <button onClick={() => setBuyersModalData({ ...buyersModalData, isOpen: false })} className="absolute top-4 right-4 text-gray-400 hover:text-[#161616] text-2xl">&times;</button>
             <h3 className="text-2xl font-bold mb-6 text-[#161616]">👥 Compradores</h3>
-            {buyersModal.loading ? <div className="py-8 text-center text-gray-500">Cargando...</div> : 
-              buyersModal.buyers.length === 0 ? <div className="py-8 text-center text-gray-400">Nadie lo ha comprado aún.</div> : (
-                <div className="space-y-3">{buyersModal.buyers.map((email, i) => (
-                  <div key={i} className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg border">
-                    <div className="w-8 h-8 bg-[#bf522b]/10 rounded-full flex items-center justify-center text-[#bf522b] font-bold text-sm">{email.charAt(0)}</div>
-                    <span className="text-sm font-medium">{email}</span>
+            {buyersModalData.isLoading ? <div className="py-8 text-center text-gray-500">Cargando...</div> : 
+              buyersModalData.buyersList.length === 0 ? <div className="py-8 text-center text-gray-400">Nadie lo ha comprado aún.</div> : (
+                <div className="space-y-3">{buyersModalData.buyersList.map((buyerEmail, emailIndex) => (
+                  <div key={emailIndex} className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg border">
+                    <div className="w-8 h-8 bg-[#bf522b]/10 rounded-full flex items-center justify-center text-[#bf522b] font-bold text-sm">{buyerEmail.charAt(0)}</div>
+                    <span className="text-sm font-medium">{buyerEmail}</span>
                   </div>
                 ))}</div>
               )
@@ -181,9 +198,9 @@ const AdminPanel = () => {
           <Card className="w-full max-w-md bg-white relative p-8">
             <button onClick={() => setIsCouponModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-[#161616] text-2xl">&times;</button>
             <h3 className="text-2xl font-bold mb-6">🎫 Crear Cupón</h3>
-            <form onSubmit={handleCreateCoupon} className="space-y-5">
-              <Input label="Código" value={couponCode} onChange={e=>setCouponCode(e.target.value.toUpperCase())} placeholder="VERANO20" required />
-              <Input label="Descuento (%)" type="number" value={couponDiscount} onChange={e=>setCouponDiscount(e.target.value)} placeholder="10" required />
+            <form onSubmit={handleCouponCreation} className="space-y-5">
+              <Input label="Código" value={newCouponCode} onChange={inputEvent=>setNewCouponCode(inputEvent.target.value.toUpperCase())} placeholder="VERANO20" required />
+              <Input label="Descuento (%)" type="number" value={newCouponDiscount} onChange={inputEvent=>setNewCouponDiscount(inputEvent.target.value)} placeholder="10" required />
               <div className="flex justify-end gap-3 pt-4 border-t">
                 <Button type="button" variant="secondary" onClick={() => setIsCouponModalOpen(false)}>Cancelar</Button>
                 <Button type="submit">Crear ☁️</Button>
@@ -194,45 +211,35 @@ const AdminPanel = () => {
       )}
 
       {/* MODAL CREAR/EDITAR MÓDULO */}
-      {isModalOpen && (
+      {isModuleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <Card className="w-full max-w-lg bg-white relative p-8 overflow-y-auto max-h-[90vh]">
-            <button onClick={handleCloseModal} className="absolute top-4 right-4 text-gray-400 hover:text-[#161616] text-2xl">&times;</button>
+            <button onClick={handleCloseModuleModal} className="absolute top-4 right-4 text-gray-400 hover:text-[#161616] text-2xl">&times;</button>
             <h3 className="text-xl font-bold mb-4">{editingModule ? 'Editar' : 'Nuevo'} Módulo</h3>
-            {formError && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{formError}</div>}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <Input label="Título" name="title" value={formData.title} onChange={handleChange} required />
-              <Input label="Descripción Corta" name="desc" value={formData.desc} onChange={handleChange} required />
-              
-              {/* NUEVO CAMPO: CARACTERÍSTICAS */}
+            {formValidationError && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{formValidationError}</div>}
+            <form onSubmit={handleModuleSubmit} className="space-y-4">
+              <Input label="Título" name="title" value={moduleFormData.title} onChange={handleFormInputChange} required />
+              <Input label="Descripción Corta" name="desc" value={moduleFormData.desc} onChange={handleFormInputChange} required />
               <div>
                 <label className="block text-sm font-semibold mb-1">Características del Módulo</label>
-                <textarea 
-                  name="features" 
-                  value={formData.features} 
-                  onChange={handleChange} 
-                  placeholder="Ej: 50h de video, Certificado PDF, Soporte prioritario (separadas por coma)"
-                  rows="2"
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#bf522b] focus:outline-none text-sm"
-                />
+                <textarea name="features" value={moduleFormData.features} onChange={handleFormInputChange} placeholder="Ej: 50h de video, Certificado (separadas por coma)" rows="2" className="w-full p-2 border rounded focus:ring-2 focus:ring-[#bf522b] focus:outline-none text-sm"/>
               </div>
-
               <div>
                 <label className="block text-sm font-semibold mb-1">Categoría</label>
-                <select name="category" value={formData.category} onChange={handleChange} className="w-full p-2 border rounded focus:ring-2 focus:ring-[#bf522b] focus:outline-none">
-                  {APP_CONFIG.CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                <select name="category" value={moduleFormData.category} onChange={handleFormInputChange} className="w-full p-2 border rounded focus:ring-2 focus:ring-[#bf522b] focus:outline-none">
+                  {APP_CONFIG.CATEGORIES.map(categoryOption => <option key={categoryOption} value={categoryOption}>{categoryOption}</option>)}
                 </select>
               </div>
-              <Input label="Precio (€)" type="number" name="price" value={formData.price} onChange={handleChange} required />
+              <Input label="Precio (€)" type="number" name="price" value={moduleFormData.price} onChange={handleFormInputChange} required />
               <div>
                 <label className="block text-sm font-semibold mb-1">URL Imagen</label>
                 <div className="flex gap-2">
-                  <input type="url" name="img" value={formData.img} onChange={handleChange} className="w-full p-2 border rounded focus:ring-2 focus:ring-[#bf522b] focus:outline-none text-sm" placeholder="Automático" />
+                  <input type="url" name="img" value={moduleFormData.img} onChange={handleFormInputChange} className="w-full p-2 border rounded focus:ring-2 focus:ring-[#bf522b] focus:outline-none text-sm" placeholder="Automático" />
                   <button type="button" onClick={handleAutoFillImage} className="bg-[#161616] text-white px-3 py-2 rounded-md text-xs font-bold hover:bg-gray-800 whitespace-nowrap">🌐 Foto</button>
                 </div>
               </div>
               <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button type="button" variant="secondary" onClick={handleCloseModal}>Cancelar</Button>
+                <Button type="button" variant="secondary" onClick={handleCloseModuleModal}>Cancelar</Button>
                 <Button type="submit">Guardar ☁️</Button>
               </div>
             </form>
