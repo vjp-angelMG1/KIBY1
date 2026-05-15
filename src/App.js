@@ -10,29 +10,19 @@ import Profile from "./pages/Profile";
 import Checkout from "./pages/Checkout";
 import ModuleDetail from "./pages/ModuleDetail";
 import Button from "./components/ui/Button";
+import toast, { Toaster } from 'react-hot-toast'; // Importar Toast
 
-// EL GUARDIÁN DE RUTAS
 const ProtectedAdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
-
-  if (loading) {
-    return <div className="p-10 text-center text-gray-500">Cargando permisos...</div>;
-  }
-
-  // Si no es admin, lo echamos a la tienda
-  if (!user || user.role !== 'admin') {
-    return <Navigate to="/" replace />;
-  }
-
-  // Si es admin, le dejamos pasar
+  if (loading) return <div className="p-10 text-center text-gray-500">Cargando permisos...</div>;
+  if (!user || user.role !== 'admin') return <Navigate to="/" replace />;
   return children;
 };
 
-// HEADER ADAPTADO Y LIMPIO
 const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const isAdmin = user?.role === 'admin'; // Leído dinámicamente de la BD
+  const isAdmin = user?.role === 'admin';
 
   return (
     <header className="bg-[#161616] shadow-lg p-4 sticky top-0 z-50">
@@ -40,14 +30,9 @@ const Header = () => {
         <div className="font-extrabold text-2xl text-[#bf522b] cursor-pointer" onClick={() => navigate('/')}>Kiby</div>
         <nav className="flex gap-2 items-center flex-wrap">
           <Link to="/"><Button variant={window.location.pathname === '/' ? 'primary' : 'secondary'}>Tienda</Button></Link>
-          
-          {/* El Admin necesita ver Cupones para gestionarlos (activar/desactivar). El alumno los ve para usarlos */}
           <Link to="/cupones"><Button variant={window.location.pathname === '/cupones' ? 'primary' : 'secondary'}>Cupones</Button></Link>
-          
           <Link to="/perfil"><Button variant={window.location.pathname === '/perfil' ? 'primary' : 'secondary'}>Mi Cuenta</Button></Link>
-          
           {isAdmin && <Link to="/admin"><Button variant={window.location.pathname === '/admin' ? 'primary' : 'secondary'}>Panel Admin</Button></Link>}
-          
           <Button variant="danger" onClick={logout}>Salir</Button>
         </nav>
       </div>
@@ -65,7 +50,7 @@ export default function App() {
 
   const handlePurchase = async (module) => {
     await ModuleService.addPurchase(user.uid, module.id);
-    alert("✅ Pago completado. El módulo es tuyo.");
+    toast.success("¡Pago completado! El módulo es tuyo."); // Toast en lugar de alert
     navigate('/perfil'); 
   };
 
@@ -75,25 +60,25 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+    <div className="min-h-screen aurora-bg text-gray-900 font-sans">
       <Header />
+      {/* Configuración del Toaster con colores de marca */}
+      <Toaster 
+        position="top-right" 
+        toastOptions={{ 
+          style: { background: '#161616', color: '#fff', borderRadius: '12px' }, 
+          success: { iconTheme: { primary: '#bf522b', secondary: '#fff' } },
+          error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } }
+        }} 
+      />
       <main className="container mx-auto py-8">
         <Routes>
-          {/* Rutas públicas */}
           <Route path="/" element={<Catalog goToCheckout={goToCheckout} isAdmin={user?.role === 'admin'} userPurchases={user.purchases || []} />} />
           <Route path="/cupones" element={<CouponManager isAdmin={user?.role === 'admin'} />} />
           <Route path="/perfil" element={<Profile goToStore={() => navigate('/')} />} />
           <Route path="/checkout" element={<Checkout module={selectedModule} onPurchase={handlePurchase} goBack={() => navigate('/')} />} />
           <Route path="/curso" element={<ModuleDetail module={selectedModule} />} />
-          
-          {/* RUTA PROTEGIDA: Solo Admins */}
-          <Route path="/admin" element={
-            <ProtectedAdminRoute>
-              <AdminPanel />
-            </ProtectedAdminRoute>
-          } />
-
-          {/* Ruta por defecto */}
+          <Route path="/admin" element={<ProtectedAdminRoute><AdminPanel /></ProtectedAdminRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
