@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ModuleService } from "../services/dataService";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 
-const Catalog = ({ goToCheckout, isAdmin, userPurchases }) => {
+const Catalog = ({ isAdmin, userPurchases }) => {
   const [catalogModules, setCatalogModules] = useState([]);
   const [isCatalogLoading, setIsCatalogLoading] = useState(true);
   const [imageLoadErrors, setImageLoadErrors] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCatalogData = async () => {
@@ -61,9 +63,15 @@ const Catalog = ({ goToCheckout, isAdmin, userPurchases }) => {
           
           return (
             <Card key={moduleItem.id}>
-              <div className="w-full h-56 bg-[#161616] dark:bg-gray-900 relative overflow-hidden rounded-t-2xl">
+              {/* 👇 IMAGEN RESTAURADA COMPLETAMENTE 👇 */}
+              <div className="w-full h-56 bg-[#161616] dark:bg-gray-900 relative overflow-hidden rounded-t-2xl cursor-pointer" onClick={() => navigate(`/modulo/${moduleItem.id}`)}>
                 {!hasImageError ? (
-                  <img src={moduleItem.img} alt={moduleItem.title} className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" onError={() => handleImageLoadingError(moduleItem.id)} />
+                  <img 
+                    src={moduleItem.img} 
+                    alt={moduleItem.title} 
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" 
+                    onError={() => handleImageLoadingError(moduleItem.id)} 
+                  />
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full w-full">
                     <span className="text-7xl font-black text-[#bf522b]/20">{moduleItem.title.charAt(0).toUpperCase()}</span>
@@ -82,10 +90,10 @@ const Catalog = ({ goToCheckout, isAdmin, userPurchases }) => {
               </div>
 
               <div className="p-6 flex flex-col dark:bg-gray-800 rounded-b-2xl">
-                <h3 className="text-xl font-bold text-[#161616] dark:text-white mb-2 leading-tight">{moduleItem.title}</h3>
+                <h3 className="text-xl font-bold text-[#161616] dark:text-white mb-2 leading-tight cursor-pointer hover:text-[#bf522b] dark:hover:text-[#bf522b]" onClick={() => navigate(`/modulo/${moduleItem.id}`)}>{moduleItem.title}</h3>
                 <p className="text-gray-500 dark:text-gray-400 text-sm flex-grow leading-relaxed">{moduleItem.desc}</p>
                 
-                {/* Módulo de Características en la tarjeta */}
+                {/* Características */}
                 {moduleItem.features && moduleItem.features.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-3">
                     {moduleItem.features.slice(0, 3).map((feature, featureIndex) => (
@@ -96,12 +104,12 @@ const Catalog = ({ goToCheckout, isAdmin, userPurchases }) => {
 
                 <div className="mt-6">
                   {isModuleOwned ? (
-                    <Button disabled variant="secondary" className="w-full justify-center">✅ Adquirido</Button>
+                    <Button onClick={() => navigate(`/modulo/${moduleItem.id}`)} className="w-full justify-center text-[#bf522b] dark:text-white">✅ Ver Módulo</Button>
                   ) : isAdmin ? (
-                    <Button variant="dark" className="w-full justify-center">👁 Vista Admin</Button>
+                    <Button onClick={() => navigate(`/modulo/${moduleItem.id}`)} variant="dark" className="w-full justify-center text-[#bf522b] dark:text-white">👁 Vista Previa Admin</Button>
                   ) : (
-                    <Button onClick={() => goToCheckout(moduleItem)} className="w-full justify-center">
-                      {isModuleFree ? '🚀 Unirse Gratis' : '⚡ Inscribirme Ahora'}
+                    <Button onClick={() => navigate(`/modulo/${moduleItem.id}`)} className="w-full justify-center text-[#bf522b] dark:text-white">
+                      {isModuleFree ? '🚀 Unirse Gratis' : '⚡ Ver Detalles'}
                     </Button>
                   )}
                 </div>

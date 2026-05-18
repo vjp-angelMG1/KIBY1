@@ -1,72 +1,129 @@
-import React from "react";
-import Card from "../components/ui/Card";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { ModuleService } from "../services/dataService";
+import { useAuth } from "../context/AuthContext";
+import Button from "../components/ui/Button";
 
-const ModuleDetail = ({ module }) => {
-  if (!module) {
-    return <div className="text-center py-20 text-gray-500">Módulo no encontrado.</div>;
-  }
+const ModuleDetail = () => {
+  const { moduloId } = useParams(); // Obtiene el ID de la URL
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [moduleData, setModuleData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchModule = async () => {
+      setLoading(true);
+      const allModules = await ModuleService.getAll();
+      const found = allModules.find(m => m.id === moduloId);
+      setModuleData(found);
+      setLoading(false);
+    };
+    fetchModule();
+  }, [moduloId]);
+
+  if (loading) return <div className="p-10 text-center text-gray-500 dark:text-gray-300 animate-pulse">Cargando detalle del módulo...</div>;
+  if (!moduleData) return <div className="p-10 text-center text-gray-500 dark:text-gray-300">Módulo no encontrado.</div>;
+
+  const isOwned = user?.purchases?.includes(moduleData.id);
+  const isAdmin = user?.role === 'admin'; // 👈 Comprobamos si es admin
+
+  // Lista de ejemplo para simular el temario del curso
+  const syllabus = [
+    "Introducción y conceptos básicos",
+    "Configuración del entorno de trabajo",
+    "Desarrollo del proyecto principal",
+    "Buenas prácticas y optimización",
+    "Despliegue y puesta en producción"
+  ];
 
   return (
     <div className="max-w-5xl mx-auto">
-      
-      {/* Cabecera del Curso */}
-      <div className="mb-8">
-        <span className="bg-[#bf522b]/10 text-[#bf522b] text-sm px-3 py-1 rounded-full font-bold uppercase">{module.category}</span>
-        <h1 className="text-4xl font-extrabold text-[#161616] mt-3 mb-2">{module.title}</h1>
-        <p className="text-gray-500 text-lg">{module.desc}</p>
-      </div>
-
-      {/* Imagen Principal del Curso */}
-      <div className="w-full h-72 md:h-[450px] rounded-2xl overflow-hidden bg-[#161616] mb-10 flex items-center justify-center shadow-xl relative">
-        <img src={module.img} alt={module.title} className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
-        <div className="hidden w-full h-full items-center justify-center absolute inset-0 bg-[#161616]">
-          <span className="text-9xl font-bold text-[#bf522b]">{module.title.charAt(0)}</span>
-        </div>
-      </div>
+      <button onClick={() => navigate(-1)} className="text-[#bf522b] hover:underline mb-8 inline-flex items-center font-bold dark:text-[#bf522b]">
+        ← Volver atrás
+      </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Columna Izquierda: Contenido Detallado y Galería */}
+        {/* Columna Principal (Contenido) */}
         <div className="lg:col-span-2 space-y-8">
+          <h1 className="text-4xl font-extrabold text-[#161616] dark:text-white tracking-tight">{moduleData.title}</h1>
           
-          {/* Descripción Completa */}
-          <Card className="p-6">
-            <h2 className="text-2xl font-bold text-[#161616] mb-4 border-b-2 border-[#bf522b] pb-2 inline-block">Descripción Completa</h2>
-            <p className="text-gray-700 leading-relaxed text-lg whitespace-pre-line">
-              {module.longDesc || "No hay descripción detallada para este módulo aún."}
-            </p>
-          </Card>
+          <div className="flex flex-wrap gap-3 items-center text-sm">
+            <span className="bg-[#bf522b]/10 text-[#bf522b] px-3 py-1 rounded-full font-bold">{moduleData.category}</span>
+            {isAdmin && <span className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full font-bold">🛡️ Vista Admin</span>}
+            {isOwned && !isAdmin && <span className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-3 py-1 rounded-full font-bold">✅ Módulo Adquirido</span>}
+          </div>
 
-          {/* Galería de Imágenes Detalladas */}
-          {module.images && module.images.length > 0 && (
-            <Card className="p-6">
-              <h2 className="text-2xl font-bold text-[#161616] mb-4 border-b-2 border-[#bf522b] pb-2 inline-block">Contenido en Detalle</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                {module.images.map((imgSrc, index) => (
-                  <div key={index} className="w-full h-48 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shadow-sm hover:shadow-md transition">
-                    <img src={imgSrc} alt={`Detalle ${index+1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onError={(e) => { e.target.style.display='none'; e.target.parentElement.innerHTML = '<div class="flex items-center justify-center h-full bg-[#161616]"><span class="text-4xl font-bold text-[#bf522b]">?</span></div>'; }} />
+          {/* Imagen del curso */}
+          <div className="w-full h-72 bg-[#161616] dark:bg-gray-900 rounded-2xl overflow-hidden shadow-lg mt-4">
+            {moduleData.img ? (
+              <img src={moduleData.img} alt={moduleData.title} className="w-full h-full object-cover" />
+            ) : (
+              <div className="flex items-center justify-center h-full text-8xl font-black text-[#bf522b]/20">{moduleData.title.charAt(0)}</div>
+            )}
+          </div>
+
+          {/* Descripción extendida */}
+          <div>
+            <h2 className="text-2xl font-bold text-[#161616] dark:text-white mb-3">Descripción del Módulo</h2>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-lg">{moduleData.desc}</p>
+          </div>
+
+          {/* Temario / Características */}
+          <div>
+            <h2 className="text-2xl font-bold text-[#161616] dark:text-white mb-4">Temario del Curso</h2>
+            <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-xl overflow-hidden divide-y dark:divide-gray-700">
+              {syllabus.map((item, index) => (
+                <div key={index} className="flex items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                  <div className="bg-[#bf522b]/10 text-[#bf522b] font-bold w-8 h-8 rounded-full flex items-center justify-center mr-4 text-sm">
+                    {index + 1}
                   </div>
-                ))}
-              </div>
-            </Card>
-          )}
-
-        </div>
-
-        {/* Columna Derecha: Reproductor de Video */}
-        <div className="lg:col-span-1">
-          <Card className="p-6 bg-[#161616] text-white sticky top-24">
-            <h3 className="font-bold text-xl mb-4">Clases en Vivo</h3>
-            <div className="bg-gray-800 p-6 rounded-lg text-gray-400 flex flex-col items-center justify-center h-48 mb-4 border border-gray-700">
-              <svg className="w-12 h-12 mb-2 text-[#bf522b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              [ REPRODUCTOR DE VIDEO ]
+                  <span className="text-[#161616] dark:text-gray-200 font-medium">{item}</span>
+                  {/* Solo mostramos el check de completado si lo ha comprado Y no es admin */}
+                  {isOwned && !isAdmin && <span className="ml-auto text-green-500">✔</span>}
+                </div>
+              ))}
             </div>
-            <p className="text-sm text-gray-400">Acceso ilimitado a todas las lecciones del módulo.</p>
-          </Card>
+          </div>
         </div>
 
-      </div>
+        {/* Columna Lateral (Precio y Acción) */}
+        <div className="lg:col-span-1">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border dark:border-gray-700 sticky top-24">
+            <div className="text-4xl font-extrabold text-[#161616] dark:text-white mb-4">
+              {moduleData.price === 0 ? 'GRATIS' : `${moduleData.price}€`}
+            </div>
+            
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                <span className="mr-2">📚</span> {syllabus.length} Lecciones
+              </div>
+              <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                <span className="mr-2">♾️</span> Acceso de por vida
+              </div>
+              <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                <span className="mr-2">📜</span> Certificado de finalización
+              </div>
+            </div>
 
+            {/* 👇 LÓGICA DE BOTONES SEGÚN EL ROL 👇 */}
+            {isAdmin ? (
+              <div className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 p-4 rounded-xl text-center text-sm font-medium">
+                🛡️ Modo Administrador<br />
+                <span className="text-xs font-normal">Vista previa de descripción</span>
+              </div>
+            ) : isOwned ? (
+              <Button className="w-full justify-center text-lg py-3 text-[#bf522b] dark:text-white" onClick={() => alert('Aquí iría el reproductor del curso')}>
+                🚀 Entrar al Curso
+              </Button>
+            ) : (
+              <Button className="w-full justify-center text-lg py-3 text-[#bf522b] dark:text-white" onClick={() => navigate('/checkout', { state: { module: moduleData } })}>
+                ⚡ Comprar Ahora
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

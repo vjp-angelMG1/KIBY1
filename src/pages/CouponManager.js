@@ -50,7 +50,8 @@ const CouponManager = ({ isAdmin }) => {
             {isAdmin ? 'Crea y gestiona los descuentos para tus alumnos.' : 'Utiliza estos códigos en el proceso de pago para obtener descuentos.'}
           </p>
         </div>
-        {isAdmin && <Button onClick={handleOpenModal}>+ Crear Cupón</Button>}
+        {/* 👇 Botón arreglado para modo oscuro 👇 */}
+        {isAdmin && <Button onClick={handleOpenModal} className="text-[#bf522b] dark:text-white">+ Crear Cupón</Button>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

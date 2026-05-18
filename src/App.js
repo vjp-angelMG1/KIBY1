@@ -24,7 +24,6 @@ const Header = ({ darkMode, toggleDarkMode }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAdmin = user?.role === 'admin';
-  
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const closeMenu = () => setIsMenuOpen(false);
@@ -39,7 +38,6 @@ const Header = ({ darkMode, toggleDarkMode }) => {
       <div className="container mx-auto flex justify-between items-center">
         <div className="font-extrabold text-2xl text-[#bf522b] cursor-pointer" onClick={() => { navigate('/'); closeMenu(); }}>Kiby</div>
         
-        {/* Botón Hamburguesa (Móvil/Tablet) */}
         <button 
           className="md:hidden text-white text-3xl focus:outline-none" 
           onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -47,9 +45,7 @@ const Header = ({ darkMode, toggleDarkMode }) => {
           {isMenuOpen ? '✕' : '☰'}
         </button>
 
-        {/* Menú Escritorio */}
         <nav className="hidden md:flex gap-2 items-center flex-wrap">
-          {/* 👇 Se añadió dark:text-white a los botones 👇 */}
           <Link to="/">
             <Button variant={location.pathname === '/' ? 'primary' : 'secondary'} className={`${location.pathname === '/' ? 'text-white' : 'text-[#bf522b]'} dark:text-white`}>
               Tienda
@@ -79,10 +75,8 @@ const Header = ({ darkMode, toggleDarkMode }) => {
         </nav>
       </div>
 
-      {/* Menú Móvil Desplegable */}
       {isMenuOpen && (
         <nav className="md:hidden flex flex-col w-full gap-3 mt-4 pt-4 border-t border-gray-800 dark:border-gray-700">
-          {/* 👇 Se añadió dark:text-white a los botones móviles 👇 */}
           <Link to="/" onClick={closeMenu}>
             <Button variant={location.pathname === '/' ? 'primary' : 'secondary'} className={`w-full ${location.pathname === '/' ? 'text-white' : 'text-[#bf522b]'} dark:text-white`}>
               Tienda
@@ -138,11 +132,9 @@ const Footer = () => {
   );
 };
 
-
 export default function App() {
   const { user, loading } = useAuth();
   const navigate = useNavigate(); 
-  const [selectedModule, setSelectedModule] = useState(null);
 
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('darkMode') === 'true';
@@ -168,11 +160,6 @@ export default function App() {
     navigate('/perfil'); 
   };
 
-  const goToCheckout = (module) => {
-    setSelectedModule(module);
-    navigate('/checkout');
-  };
-
   return (
     <div className="min-h-screen aurora-bg dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300 flex flex-col">
       <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
@@ -187,11 +174,11 @@ export default function App() {
       
       <main className="container mx-auto py-8 flex-grow">
         <Routes>
-          <Route path="/" element={<Catalog goToCheckout={goToCheckout} isAdmin={user?.role === 'admin'} userPurchases={user.purchases || []} />} />
+          <Route path="/" element={<Catalog isAdmin={user?.role === 'admin'} userPurchases={user.purchases || []} />} />
           <Route path="/cupones" element={<CouponManager isAdmin={user?.role === 'admin'} />} />
-          <Route path="/perfil" element={<Profile goToStore={() => navigate('/')} />} />
-          <Route path="/checkout" element={<Checkout module={selectedModule} onPurchase={handlePurchase} goBack={() => navigate('/')} />} />
-          <Route path="/curso" element={<ModuleDetail module={selectedModule} />} />
+          <Route path="/perfil" element={<Profile />} />
+          <Route path="/modulo/:moduloId" element={<ModuleDetail />} />
+          <Route path="/checkout" element={<Checkout onPurchase={handlePurchase} goBack={() => navigate('/')} />} />
           <Route path="/admin" element={<ProtectedAdminRoute><AdminPanel /></ProtectedAdminRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
