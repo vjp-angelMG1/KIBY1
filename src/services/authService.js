@@ -40,4 +40,4 @@ export const logoutUser = async () => {
 
 export const subscribeToAuthChanges = (authStateCallback) => {
   return onAuthStateChanged(FirebaseAuth, authStateCallback);
-};
+}; 

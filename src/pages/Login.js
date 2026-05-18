@@ -1,15 +1,24 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { loginWithEmailPassword, loginWithGoogle, registerWithEmailPassword } from "../services/authService"; // Nombres actualizados
+import { loginWithEmailPassword, loginWithGoogle, registerWithEmailPassword } from "../services/authService";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import toast from 'react-hot-toast';
 
 const Login = () => {
   const [isRegisterMode, setIsRegisterMode] = useState(false);
+  
+  // Campos de Login
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  
+  // Campos extra de Registro
+  const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  
   const [error, setError] = useState("");
   const { user } = useAuth();
 
@@ -18,7 +27,12 @@ const Login = () => {
     setError("");
 
     if (isRegisterMode) {
-      // --- MODO REGISTRO ---
+      // --- VALIDACIONES DE REGISTRO ---
+      if (!fullName.trim() || !username.trim()) {
+        setError("El nombre y el usuario son obligatorios.");
+        toast.error("Faltan datos obligatorios");
+        return;
+      }
       if (password !== confirmPassword) {
         setError("Las contraseñas no coinciden.");
         toast.error("Las contraseñas no coinciden");
@@ -26,12 +40,19 @@ const Login = () => {
       }
       if (password.length < 6) {
         setError("La contraseña debe tener al menos 6 caracteres.");
-        toast.error("Contraseña muy corta (mínimo 6 caracteres)");
+        toast.error("Contraseña muy corta");
+        return;
+      }
+      if (!acceptTerms) {
+        setError("Debes aceptar los términos y condiciones.");
+        toast.error("Acepta los términos");
         return;
       }
 
       try {
-        await registerWithEmailPassword(email, password); // Función actualizada
+        // Pasamos los datos extra al servicio
+        const profileData = { fullName, username, phone };
+        await registerWithEmailPassword(email, password, profileData);
         toast.success("¡Cuenta creada con éxito! Bienvenido.");
       } catch (err) {
         if (err.code === 'auth/email-already-in-use') {
@@ -45,7 +66,7 @@ const Login = () => {
     } else {
       // --- MODO LOGIN ---
       try {
-        await loginWithEmailPassword(email, password); // Función actualizada
+        await loginWithEmailPassword(email, password);
         toast.success("Sesión iniciada correctamente");
       } catch (err) {
         setError("Credenciales incorrectas o acceso denegado.");
@@ -72,17 +93,22 @@ const Login = () => {
     setEmail("");
     setPassword("");
     setConfirmPassword("");
+    setFullName("");
+    setUsername("");
+    setPhone("");
+    setAcceptTerms(false);
   };
 
   if (user) return null; 
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh] px-4">
-      <Card className="p-8 w-full max-w-md text-center">
+    <div className="flex items-center justify-center min-h-[80vh] px-4 py-8">
+      {/* Card más ancha en modo registro */}
+      <Card className={`p-8 w-full text-center transition-all duration-300 ${isRegisterMode ? 'max-w-2xl' : 'max-w-md'}`}>
         <div className="mb-8">
           <h2 className="text-3xl font-extrabold text-[#161616]">Kiby</h2>
           <p className="text-gray-500 mt-2">
-            {isRegisterMode ? 'Crea tu cuenta para empezar' : 'Accede a tu cuenta'}
+            {isRegisterMode ? 'Crea tu cuenta para empezar a aprender' : 'Accede a tu cuenta'}
           </p>
         </div>
 
@@ -100,65 +126,83 @@ const Login = () => {
           {isRegisterMode ? 'Registrarse con Google' : 'Continuar con Google'}
         </button>
 
-        {/* --- SEPARADOR --- */}
         <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200"></div>
-          </div>
+          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
           <div className="relative flex justify-center text-sm">
             <span className="px-4 bg-white text-gray-400 font-medium uppercase tracking-wider">o</span>
           </div>
         </div>
 
-        {/* --- FORMULARIO EMAIL/PASSWORD --- */}
+        {/* --- FORMULARIO --- */}
         <form onSubmit={handleSubmit} className="space-y-4 text-left">
-          <div>
-            <label className="block text-sm font-semibold mb-1 text-gray-700">Correo electrónico</label>
-            <input 
-              type="email" 
-              placeholder="tu@email.com" 
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bf522b] focus:outline-none transition text-sm"
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              required
-            />
-          </div>
           
-          <div>
-            <label className="block text-sm font-semibold mb-1 text-gray-700">Contraseña</label>
-            <input 
-              type="password" 
-              placeholder="Mínimo 6 caracteres" 
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bf522b] focus:outline-none transition text-sm"
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              required
-            />
+          {/* Grid de 2 columnas solo en registro */}
+          <div className={`grid gap-4 ${isRegisterMode ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
+            
+            {isRegisterMode && (
+              <>
+                <div>
+                  <label className="block text-sm font-semibold mb-1 text-gray-700">Nombre Completo *</label>
+                  <input type="text" placeholder="Juan Pérez" className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bf522b] focus:outline-none transition text-sm" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-1 text-gray-700">Nombre de Usuario *</label>
+                  <input type="text" placeholder="juanperez" className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bf522b] focus:outline-none transition text-sm" value={username} onChange={(e) => setUsername(e.target.value)} required />
+                </div>
+              </>
+            )}
+
+            <div className={isRegisterMode ? "md:col-span-2" : ""}>
+              <label className="block text-sm font-semibold mb-1 text-gray-700">Correo electrónico *</label>
+              <input type="email" placeholder="tu@email.com" className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bf522b] focus:outline-none transition text-sm" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
+            
+            {isRegisterMode && (
+              <div>
+                <label className="block text-sm font-semibold mb-1 text-gray-700">Teléfono</label>
+                <input type="tel" placeholder="+34 612 345 678" className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bf522b] focus:outline-none transition text-sm" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-semibold mb-1 text-gray-700">Contraseña *</label>
+              <input type="password" placeholder="Mínimo 6 caracteres" className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bf522b] focus:outline-none transition text-sm" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </div>
+            
+            {isRegisterMode && (
+              <div>
+                <label className="block text-sm font-semibold mb-1 text-gray-700">Confirmar Contraseña *</label>
+                <input type="password" placeholder="Repite tu contraseña" className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bf522b] focus:outline-none transition text-sm" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+              </div>
+            )}
           </div>
 
-          {/* --- CAMPO EXTRA SOLO EN MODO REGISTRO --- */}
+          {/* Checkbox de términos */}
           {isRegisterMode && (
-            <div>
-              <label className="block text-sm font-semibold mb-1 text-gray-700">Confirmar Contraseña</label>
+            <div className="flex items-start gap-2 pt-2">
               <input 
-                type="password" 
-                placeholder="Repite tu contraseña" 
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bf522b] focus:outline-none transition text-sm"
-                value={confirmPassword} 
-                onChange={(e) => setConfirmPassword(e.target.value)} 
-                required
+                type="checkbox" 
+                id="acceptTerms" 
+                checked={acceptTerms} 
+                onChange={(e) => setAcceptTerms(e.target.checked)} 
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-[#bf522b] focus:ring-[#bf522b]"
+                required 
               />
+              <label htmlFor="acceptTerms" className="text-xs text-gray-500">
+                He leído y acepto los <a href="#" className="text-[#bf522b] font-semibold hover:underline">Términos de Servicio</a> y la <a href="#" className="text-[#bf522b] font-semibold hover:underline">Política de Privacidad</a>.
+              </label>
             </div>
           )}
+
+          {error && <p className="text-red-500 text-sm pt-2 text-center">{error}</p>}
           
-          {error && <p className="text-red-500 text-sm pt-1 text-center">{error}</p>}
-          
-          <Button type="submit" className="w-full justify-center py-3">
-            {isRegisterMode ? 'Crear Cuenta' : 'Iniciar Sesión'}
-          </Button>
+          <div className="pt-2">
+            <Button type="submit" className="w-full justify-center py-3">
+              {isRegisterMode ? 'Crear Mi Cuenta' : 'Iniciar Sesión'}
+            </Button>
+          </div>
         </form>
 
-        {/* --- ENLACE PARA CAMBIAR DE MODO --- */}
         <div className="mt-6 text-sm text-gray-500">
           {isRegisterMode ? (
             <p>¿Ya tienes una cuenta? <button onClick={toggleMode} className="text-[#bf522b] font-bold hover:underline">Inicia sesión</button></p>
