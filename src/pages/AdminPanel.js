@@ -14,10 +14,12 @@ const AdminPanel = () => {
     title: "", desc: "", category: "Programación", price: 0, img: "", longDesc: "", imgList: "", features: "" 
   });
   
+  // Estado para la validación de la imagen
+  const [imageValidation, setImageValidation] = useState({ status: 'idle', message: '' }); // idle, loading, valid, error
+  
   const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
   const [newCouponCode, setNewCouponCode] = useState("");
   const [newCouponDiscount, setNewCouponDiscount] = useState("");
-  
   const [buyersModalData, setBuyersModalData] = useState({ isOpen: false, moduleId: null, buyersList: [], isLoading: false });
 
   const categoryDefaultImages = {
@@ -36,6 +38,7 @@ const AdminPanel = () => {
 
   const handleOpenModuleModal = (moduleToEdit = null) => {
     setFormValidationError("");
+    setImageValidation({ status: 'idle', message: '' }); // Reset validación
     if (moduleToEdit) { 
       setEditingModule(moduleToEdit); 
       setModuleFormData({ 
@@ -43,6 +46,7 @@ const AdminPanel = () => {
         imgList: moduleToEdit.images ? moduleToEdit.images.join(', ') : '', 
         features: moduleToEdit.features ? moduleToEdit.features.join(', ') : '' 
       }); 
+      if (moduleToEdit.img) validateImageUrl(moduleToEdit.img); // Validar la imagen existente
     } else { 
       setEditingModule(null); 
       setModuleFormData({ title: "", desc: "", category: "Programación", price: 0, img: "", longDesc: "", imgList: "", features: "" }); 
@@ -54,12 +58,48 @@ const AdminPanel = () => {
   
   const handleFormInputChange = (event) => { 
     const { name, value } = event.target; 
-    setModuleFormData(previousData => ({ ...previousData, [name]: value })); 
+    setModuleFormData(previousData => ({ ...previousData, [name]: value }));
+    
+    // Si cambia la URL, reseteamos la validación hasta que el usuario quite el foco
+    if (name === 'img') {
+      setImageValidation({ status: 'idle', message: '' });
+    }
   };
   
+  // 🚀 FUNCIÓN: Validar si una URL de imagen es real y carga correctamente
+  const validateImageUrl = (urlToValidate) => {
+    if (!urlToValidate) {
+      setImageValidation({ status: 'idle', message: 'Se usará imagen por defecto.' });
+      return;
+    }
+
+    // 1. Validación de sintaxis básica (Regex)
+    const urlPattern = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
+    if (!urlPattern.test(urlToValidate)) {
+      setImageValidation({ status: 'error', message: 'URL mal formada (debe empezar por http:// o https://)' });
+      return;
+    }
+
+    // 2. Validación de red (Intentar cargar la imagen real)
+    setImageValidation({ status: 'loading', message: 'Comprobando imagen...' });
+    
+    const testImage = new Image();
+    
+    testImage.onload = () => {
+      setImageValidation({ status: 'valid', message: '¡Imagen válida y accesible!' });
+    };
+    
+    testImage.onerror = () => {
+      setImageValidation({ status: 'error', message: 'La URL no devuelve una imagen válida o está caída (404).' });
+    };
+
+    testImage.src = urlToValidate;
+  };
+
   const handleAutoFillImage = () => { 
     const defaultImage = categoryDefaultImages[moduleFormData.category] || "https://placehold.co/600x400/161616/bf522b?text=Curso";
     setModuleFormData(previousData => ({ ...previousData, img: defaultImage })); 
+    validateImageUrl(defaultImage); // Validamos la que ponemos automáticamente
   };
 
   const handleModuleSubmit = async (event) => {
@@ -68,6 +108,12 @@ const AdminPanel = () => {
     
     if (moduleFormData.title.trim().length < 3) { setFormValidationError("El título debe tener al menos 3 caracteres."); return; }
     if (moduleFormData.price === "" || parseFloat(moduleFormData.price) < 0) { setFormValidationError("El precio no puede ser negativo."); return; }
+    
+    // Bloquear envío si la imagen dio error explícitamente
+    if (imageValidation.status === 'error') {
+      setFormValidationError("Corrige la URL de la imagen antes de guardar.");
+      return;
+    }
 
     if (editingModule) { 
       await ModuleService.update({ ...moduleFormData, id: editingModule.id }); 
@@ -100,6 +146,16 @@ const AdminPanel = () => {
     setNewCouponDiscount(""); 
     setIsCouponModalOpen(false);
     alert("✅ Cupón creado con éxito.");
+  };
+
+  // Función auxiliar para los colores del validador
+  const getValidationColor = () => {
+    switch(imageValidation.status) {
+      case 'valid': return 'text-green-600';
+      case 'error': return 'text-red-600';
+      case 'loading': return 'text-gray-500';
+      default: return 'text-gray-400';
+    }
   };
 
   return (
@@ -210,7 +266,7 @@ const AdminPanel = () => {
         </div>
       )}
 
-      {/* MODAL CREAR/EDITAR MÓDULO */}
+      {/* MODAL CREAR/EDITAR MÓDULO (CON VALIDACIÓN DE IMAGEN) */}
       {isModuleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <Card className="w-full max-w-lg bg-white relative p-8 overflow-y-auto max-h-[90vh]">
@@ -231,13 +287,42 @@ const AdminPanel = () => {
                 </select>
               </div>
               <Input label="Precio (€)" type="number" name="price" value={moduleFormData.price} onChange={handleFormInputChange} required />
+              
+              {/* --- CAMPO URL IMAGEN CON VALIDACIÓN EN TIEMPO REAL --- */}
               <div>
                 <label className="block text-sm font-semibold mb-1">URL Imagen</label>
                 <div className="flex gap-2">
-                  <input type="url" name="img" value={moduleFormData.img} onChange={handleFormInputChange} className="w-full p-2 border rounded focus:ring-2 focus:ring-[#bf522b] focus:outline-none text-sm" placeholder="Automático" />
+                  <input 
+                    type="url" 
+                    name="img" 
+                    value={moduleFormData.img} 
+                    onChange={handleFormInputChange} 
+                    onBlur={(e) => validateImageUrl(e.target.value)} // Se valida al quitar el foco
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-[#bf522b] focus:outline-none text-sm" 
+                    placeholder="https://ejemplo.com/foto.jpg" 
+                  />
                   <button type="button" onClick={handleAutoFillImage} className="bg-[#161616] text-white px-3 py-2 rounded-md text-xs font-bold hover:bg-gray-800 whitespace-nowrap">🌐 Foto</button>
                 </div>
+                
+                {/* Indicador de estado de la validación */}
+                {imageValidation.status !== 'idle' && (
+                  <div className={`flex items-center gap-2 mt-2 text-xs font-semibold ${getValidationColor()}`}>
+                    {imageValidation.status === 'loading' && <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>}
+                    {imageValidation.status === 'valid' && '✅'}
+                    {imageValidation.status === 'error' && '❌'}
+                    {imageValidation.message}
+                  </div>
+                )}
               </div>
+
+              {/* Vista previa si la imagen es válida */}
+              {imageValidation.status === 'valid' && moduleFormData.img && (
+                <div className="mt-2 border rounded-lg overflow-hidden bg-gray-50 p-2">
+                  <p className="text-xs text-gray-400 mb-2 font-semibold uppercase tracking-wider">Vista Previa</p>
+                  <img src={moduleFormData.img} alt="Preview" className="h-32 w-full object-cover rounded-md" />
+                </div>
+              )}
+
               <div className="flex justify-end gap-3 pt-4 border-t">
                 <Button type="button" variant="secondary" onClick={handleCloseModuleModal}>Cancelar</Button>
                 <Button type="submit">Guardar ☁️</Button>
