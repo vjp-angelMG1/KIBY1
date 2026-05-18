@@ -1,30 +1,43 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword } from "firebase/auth"; // Añadido createUserWithEmailAndPassword
+import { 
+  getAuth, 
+  signInWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  createUserWithEmailAndPassword 
+} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { FIREBASE_CONFIG } from "../config/constants";
 
-const app = initializeApp(FIREBASE_CONFIG);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Instancias en PascalCase
+const FirebaseApp = initializeApp(FIREBASE_CONFIG);
+export const FirebaseAuth = getAuth(FirebaseApp);
+export const FirebaseFirestore = getFirestore(FirebaseApp);
 
-export const login = async (email, password) => {
-  return signInWithEmailAndPassword(auth, email, password);
+// Alias para compatibilidad con el resto del código actual
+export const auth = FirebaseAuth;
+export const db = FirebaseFirestore;
+
+// Funciones en camelCase
+export const loginWithEmailPassword = async (email, password) => {
+  return signInWithEmailAndPassword(FirebaseAuth, email, password);
 };
 
-// 🚀 NUEVA FUNCIÓN: Registro con Email y Contraseña
-export const register = async (email, password) => {
-  return createUserWithEmailAndPassword(auth, email, password);
+export const registerWithEmailPassword = async (email, password) => {
+  return createUserWithEmailAndPassword(FirebaseAuth, email, password);
 };
 
 export const loginWithGoogle = async () => {
-  const provider = new GoogleAuthProvider();
-  return signInWithPopup(auth, provider);
+  const googleProvider = new GoogleAuthProvider();
+  return signInWithPopup(FirebaseAuth, googleProvider);
 };
 
-export const logout = async () => {
-  return signOut(auth);
+export const logoutUser = async () => {
+  return signOut(FirebaseAuth);
 };
 
-export const subscribeToAuthChanges = (callback) => {
-  return onAuthStateChanged(auth, callback);
+export const subscribeToAuthChanges = (authStateCallback) => {
+  return onAuthStateChanged(FirebaseAuth, authStateCallback);
 };

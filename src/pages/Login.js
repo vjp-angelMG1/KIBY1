@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { login, loginWithGoogle, register } from "../services/authService"; // Importar register
+import { loginWithEmailPassword, loginWithGoogle, registerWithEmailPassword } from "../services/authService"; // Nombres actualizados
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import toast from 'react-hot-toast';
 
 const Login = () => {
-  const [isRegisterMode, setIsRegisterMode] = useState(false); // Estado para cambiar entre Login y Registro
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -31,7 +31,7 @@ const Login = () => {
       }
 
       try {
-        await register(email, password);
+        await registerWithEmailPassword(email, password); // Función actualizada
         toast.success("¡Cuenta creada con éxito! Bienvenido.");
       } catch (err) {
         if (err.code === 'auth/email-already-in-use') {
@@ -45,7 +45,7 @@ const Login = () => {
     } else {
       // --- MODO LOGIN ---
       try {
-        await login(email, password);
+        await loginWithEmailPassword(email, password); // Función actualizada
         toast.success("Sesión iniciada correctamente");
       } catch (err) {
         setError("Credenciales incorrectas o acceso denegado.");
@@ -66,7 +66,6 @@ const Login = () => {
     }
   };
 
-  // Función para limpiar el formulario al cambiar de modo
   const toggleMode = () => {
     setIsRegisterMode(!isRegisterMode);
     setError("");

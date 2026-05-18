@@ -1,50 +1,49 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { subscribeToAuthChanges, logout as authLogout, db } from "../services/authService";
-import { doc, getDoc, setDoc } from "firebase/firestore"; // Añadimos setDoc
+import { subscribeToAuthChanges, logoutUser, db } from "../services/authService";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [authenticatedUser, setAuthenticatedUser] = useState(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = subscribeToAuthChanges(async (authUser) => {
-      if (authUser) {
+    const unsubscribeAuthListener = subscribeToAuthChanges(async (firebaseUser) => {
+      if (firebaseUser) {
         try {
-          const userRef = doc(db, 'users', authUser.uid);
-          const snap = await getDoc(userRef);
+          const userDocRef = doc(db, 'users', firebaseUser.uid);
+          const userDocSnap = await getDoc(userDocRef);
 
-          if (snap.exists()) {
-            // Si la ficha ya existe, leemos el rol que tenga en la base de datos
-            const role = snap.data()?.role || 'user';
-            setUser({ ...authUser, role });
+          if (userDocSnap.exists()) {
+            const userRole = userDocSnap.data()?.role || 'user';
+            setAuthenticatedUser({ ...firebaseUser, role: userRole });
           } else {
-            // Si la ficha NO existe (primera vez que entra), LA CREAMOS AUTOMÁTICAMENTE
-            await setDoc(userRef, { 
-              email: authUser.email, 
+            // Crear ficha en Firestore si es la primera vez que entra
+            await setDoc(userDocRef, { 
+              email: firebaseUser.email, 
               role: 'user', 
               purchases: [] 
             });
-            setUser({ ...authUser, role: 'user' });
+            setAuthenticatedUser({ ...firebaseUser, role: 'user' });
           }
         } catch (error) {
           console.error("Error leyendo/creando el usuario:", error);
-          setUser({ ...authUser, role: 'user' }); // Fallback por seguridad
+          setAuthenticatedUser({ ...firebaseUser, role: 'user' });
         }
       } else {
-        setUser(null);
+        setAuthenticatedUser(null);
       }
-      setLoading(false);
+      setIsAuthLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => unsubscribeAuthListener();
   }, []);
-  
-  const logout = () => { authLogout(); };
 
-  return ( 
-    <AuthContext.Provider value={{ user, loading, logout }}>
+  const handleLogout = () => { logoutUser(); };
+
+  return (
+    <AuthContext.Provider value={{ user: authenticatedUser, loading: isAuthLoading, logout: handleLogout }}>
       {children}
     </AuthContext.Provider>
   );

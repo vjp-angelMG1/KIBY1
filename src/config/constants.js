@@ -1,3 +1,4 @@
+// Constantes globales en UPPER_SNAKE_CASE
 export const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCCS2rwV6tVSjC1Qq1wbGwxw-CC463aySg",
   authDomain: "kiby-cce29.firebaseapp.com",
@@ -9,8 +10,8 @@ export const FIREBASE_CONFIG = {
 };
 
 export const APP_CONFIG = {
-  ADMIN_EMAIL: 'admin@kiby.com',
-  STORAGE_KEYS: {
+  ADMIN_EMAIL: 'admin@kiby.com', // UPPER_SNAKE_CASE
+  STORAGE_KEYS: {                // UPPER_SNAKE_CASE
     MODULES: 'kiby_modules',
     PURCHASES: 'kiby_purchases',
     COUPONS: 'kiby_coupons'

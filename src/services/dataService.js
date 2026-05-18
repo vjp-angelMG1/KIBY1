@@ -7,125 +7,102 @@ import {
 // --- MÓDULOS ---
 export const ModuleService = {
   /**
-   * Obtiene todos los módulos de la base de datos.
-   * @returns {Promise<Array>} Array de objetos de módulos.
+   * Obtiene todos los módulos.
    */
   getAll: async () => {
-    const querySnapshot = await getDocs(collection(db, "modules"));
-    return querySnapshot.docs.map(documentSnapshot => ({ id: documentSnapshot.id, ...documentSnapshot.data() }));
+    const collectionRef = collection(db, "modules");
+    const querySnapshot = await getDocs(collectionRef);
+    return querySnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
   },
   
   /**
-   * Obtiene un módulo específico por su ID.
-   * @param {string} moduleId - ID del módulo a buscar.
-   * @returns {Promise<Object|null>} Objeto del módulo o null si no existe.
+   * Obtiene un módulo por su ID.
    */
   getById: async (moduleId) => {
-    const documentReference = doc(db, "modules", moduleId);
-    const documentSnapshot = await getDoc(documentReference);
-    return documentSnapshot.exists() ? { id: documentSnapshot.id, ...documentSnapshot.data() } : null;
+    const docRef = doc(db, "modules", moduleId);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
   },
   
   /**
-   * Crea un nuevo módulo en la base de datos.
-   * @param {Object} moduleInputData - Datos del formulario del módulo.
+   * Crea un nuevo módulo.
    */
-  create: async (moduleInputData) => {
+  create: async (moduleData) => {
     const defaultImageUrl = "https://placehold.co/600x400/161616/bf522b?text=Kiby+Course";
-    const finalImageUrl = moduleInputData.img || defaultImageUrl;
+    const finalImageUrl = moduleData.img || defaultImageUrl;
     
-    const imageUrlsArray = moduleInputData.imgList 
-      ? moduleInputData.imgList.split(',').map(url => url.trim()).filter(url => url !== '') 
+    const galleryUrls = moduleData.imgList 
+      ? moduleData.imgList.split(',').map(urlString => urlString.trim()).filter(validUrl => validUrl !== '') 
       : [];
     
-    const featuresArray = moduleInputData.features 
-      ? moduleInputData.features.split(',').map(feature => feature.trim()).filter(feature => feature !== '') 
+    const featureList = moduleData.features 
+      ? moduleData.features.split(',').map(featureString => featureString.trim()).filter(validFeature => validFeature !== '') 
       : [];
     
-    const finalPrice = parseFloat(moduleInputData.price) || 0;
+    const finalPrice = parseFloat(moduleData.price) || 0;
     
-    const moduleDataToSave = { 
-      ...moduleInputData, 
+    const dataToSave = { 
+      ...moduleData, 
       img: finalImageUrl, 
-      images: imageUrlsArray, 
-      features: featuresArray, 
+      images: galleryUrls, 
+      features: featureList, 
       price: finalPrice 
     };
     
-    // Eliminamos campos temporales que no deben guardarse en Firestore
-    delete moduleDataToSave.imgList;
-    
-    await addDoc(collection(db, "modules"), moduleDataToSave);
+    delete dataToSave.imgList; // Limpiamos campo temporal
+    await addDoc(collection(db, "modules"), dataToSave);
   },
   
   /**
    * Actualiza un módulo existente.
-   * @param {Object} updatedModuleData - Datos actualizados del módulo (incluye id).
    */
-  update: async (updatedModuleData) => {
-    const { id, ...dataWithoutId } = updatedModuleData;
+  update: async (updatedData) => {
+    const { id, ...dataWithoutId } = updatedData;
     
-    const imageUrlsArray = dataWithoutId.imgList 
-      ? dataWithoutId.imgList.split(',').map(url => url.trim()).filter(url => url !== '') 
+    const galleryUrls = dataWithoutId.imgList 
+      ? dataWithoutId.imgList.split(',').map(urlString => urlString.trim()).filter(validUrl => validUrl !== '') 
       : dataWithoutId.images;
     
-    const featuresArray = dataWithoutId.features && typeof dataWithoutId.features === 'string' 
-      ? dataWithoutId.features.split(',').map(feature => feature.trim()).filter(feature => feature !== '') 
+    const featureList = dataWithoutId.features && typeof dataWithoutId.features === 'string' 
+      ? dataWithoutId.features.split(',').map(featureString => featureString.trim()).filter(validFeature => validFeature !== '') 
       : dataWithoutId.features;
     
     const finalPrice = parseFloat(dataWithoutId.price) || 0;
     
-    const finalDataToSave = { ...dataWithoutId, images: imageUrlsArray, features: featuresArray, price: finalPrice };
-    delete finalDataToSave.imgList;
+    const finalData = { ...dataWithoutId, images: galleryUrls, features: featureList, price: finalPrice };
+    delete finalData.imgList;
     
-    const documentReference = doc(db, "modules", id);
-    await updateDoc(documentReference, finalDataToSave);
+    const docRef = doc(db, "modules", id);
+    await updateDoc(docRef, finalData);
   },
   
   /**
-   * Elimina un módulo por su ID.
-   * @param {string} moduleId - ID del módulo a eliminar.
+   * Elimina un módulo.
    */
   delete: async (moduleId) => {
     await deleteDoc(doc(db, "modules", moduleId));
   },
   
   // --- COMPRAS ---
-  /**
-   * Registra la compra de un módulo para un usuario.
-   * @param {string} userId - ID del usuario que compra.
-   * @param {string} moduleId - ID del módulo comprado.
-   */
   addPurchase: async (userId, moduleId) => {
-    const userDocumentRef = doc(db, "users", userId);
-    const userDocumentSnap = await getDoc(userDocumentRef);
-    const currentPurchases = userDocumentSnap.data()?.purchases || [];
+    const userDocRef = doc(db, "users", userId);
+    const userDocSnap = await getDoc(userDocRef);
+    const currentPurchases = userDocSnap.data()?.purchases || [];
     
     if (!currentPurchases.includes(moduleId)) {
-      await updateDoc(userDocumentRef, { purchases: [...currentPurchases, moduleId] });
+      await updateDoc(userDocRef, { purchases: [...currentPurchases, moduleId] });
     }
   },
   
-  /**
-   * Obtiene los módulos que ha comprado un usuario.
-   * @param {string} userId - ID del usuario.
-   * @returns {Promise<Array>} Array de módulos comprados.
-   */
   getMyModules: async (userId) => {
-    const userDocumentSnap = await getDoc(doc(db, "users", userId));
-    const purchasedModuleIds = userDocumentSnap.data()?.purchases || [];
+    const userDocSnap = await getDoc(doc(db, "users", userId));
+    const purchasedIds = userDocSnap.data()?.purchases || [];
     
-    if (purchasedModuleIds.length === 0) return [];
-    
+    if (purchasedIds.length === 0) return [];
     const allAvailableModules = await ModuleService.getAll();
-    return allAvailableModules.filter(module => purchasedModuleIds.includes(module.id));
+    return allAvailableModules.filter(moduleItem => purchasedIds.includes(moduleItem.id));
   },
 
-  /**
-   * Obtiene los correos de los usuarios que han comprado un módulo específico.
-   * @param {string} moduleId - ID del módulo a consultar.
-   * @returns {Promise<Array>} Array de strings (emails).
-   */
   getBuyersForModule: async (moduleId) => {
     const purchaseQuery = query(collection(db, "users"), where("purchases", "array-contains", moduleId));
     const querySnapshot = await getDocs(purchaseQuery);
@@ -135,21 +112,12 @@ export const ModuleService = {
 
 // --- CUPONES ---
 export const CouponService = {
-  /**
-   * Obtiene todos los cupones existentes.
-   * @returns {Promise<Array>} Array de objetos de cupones.
-   */
   getAll: async () => {
-    const querySnapshot = await getDocs(collection(db, "coupons"));
-    return querySnapshot.docs.map(documentSnapshot => ({ id: documentSnapshot.id, ...documentSnapshot.data() }));
+    const collectionRef = collection(db, "coupons");
+    const querySnapshot = await getDocs(collectionRef);
+    return querySnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
   },
   
-  /**
-   * Crea un nuevo cupón de descuento.
-   * @param {string} couponCode - Código del cupón (ej: VERANO20).
-   * @param {number} discountPercentage - Porcentaje de descuento.
-   * @param {string} [imageUrl] - URL de la imagen del cupón (opcional).
-   */
   create: async (couponCode, discountPercentage, imageUrl) => {
     const finalImageUrl = imageUrl || `https://placehold.co/600x400/161616/bf522b?text=${couponCode}`;
     const newCouponData = { 
@@ -162,32 +130,19 @@ export const CouponService = {
     await addDoc(collection(db, "coupons"), newCouponData);
   },
   
-  /**
-   * Elimina un cupón por su ID.
-   * @param {string} couponId - ID del cupón a eliminar.
-   */
   delete: async (couponId) => {
     await deleteDoc(doc(db, "coupons", couponId));
   },
   
-  /**
-   * Cambia el estado activo/inactivo de un cupón.
-   * @param {string} couponId - ID del cupón a modificar.
-   */
   toggleStatus: async (couponId) => {
-    const couponDocRef = doc(db, "coupons", couponId);
-    const couponDocSnap = await getDoc(couponDocRef);
-    if (couponDocSnap.exists()) {
-      const currentStatus = couponDocSnap.data().active;
-      await updateDoc(couponDocRef, { active: !currentStatus });
+    const docRef = doc(db, "coupons", couponId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const currentStatus = docSnap.data().active;
+      await updateDoc(docRef, { active: !currentStatus });
     }
   },
   
-  /**
-   * Valida si un cupón es válido y está activo.
-   * @param {string} inputCode - Código introducido por el usuario.
-   * @returns {Promise<Object|null>} Objeto del cupón si es válido, null si no.
-   */
   applyCoupon: async (inputCode) => {
     const validationQuery = query(
       collection(db, "coupons"), 
