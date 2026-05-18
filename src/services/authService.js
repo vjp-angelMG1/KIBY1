@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "firebase/auth"; // Añadidos GoogleAuthProvider y signInWithPopup
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword } from "firebase/auth"; // Añadido createUserWithEmailAndPassword
 import { getFirestore } from "firebase/firestore";
 import { FIREBASE_CONFIG } from "../config/constants";
 
@@ -11,11 +11,13 @@ export const login = async (email, password) => {
   return signInWithEmailAndPassword(auth, email, password);
 };
 
-// 🚀 NUEVA FUNCIÓN: Login con Google
+// 🚀 NUEVA FUNCIÓN: Registro con Email y Contraseña
+export const register = async (email, password) => {
+  return createUserWithEmailAndPassword(auth, email, password);
+};
+
 export const loginWithGoogle = async () => {
   const provider = new GoogleAuthProvider();
-  // Puedes forzar a que siempre pida seleccionar cuenta:
-  // provider.setCustomParameters({ prompt: 'select_account' });
   return signInWithPopup(auth, provider);
 };
 
