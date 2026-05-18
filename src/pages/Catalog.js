@@ -10,7 +10,7 @@ const Catalog = ({ goToCheckout, isAdmin, userPurchases }) => {
 
   useEffect(() => {
     const fetchCatalogData = async () => {
-      setIsCatalogLoading(true);
+      setIsCatalogLoading(true); 
       const fetchedModules = await ModuleService.getAll();
       setCatalogModules(fetchedModules);
       setIsCatalogLoading(false);
