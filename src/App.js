@@ -12,6 +12,15 @@ import ModuleDetail from "./pages/ModuleDetail";
 import Button from "./components/ui/Button";
 import toast, { Toaster } from 'react-hot-toast';
 
+/**
+ * Componente de ruta protegida para administradores.
+ * Verifica si el usuario está autenticado y tiene el rol de 'admin'.
+ * Si no lo está, redirige a la página principal.
+ * 
+ * @param {Object} props - Las propiedades del componente.
+ * @param {React.ReactNode} props.children - Los componentes hijos que se renderizarán si el usuario es admin.
+ * @returns {JSX.Element} Los hijos si es admin, un spinner de carga, o una redirección a `/`.
+ */
 const ProtectedAdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="p-10 text-center text-gray-500 dark:text-gray-300">Cargando permisos...</div>;
@@ -19,15 +28,28 @@ const ProtectedAdminRoute = ({ children }) => {
   return children;
 };
 
+/**
+ * Componente de encabezado (Header) de la aplicación.
+ * Contiene la navegación principal, el botón de modo oscuro/claro y el menú hamburguesa responsive.
+ * 
+ * @param {Object} props - Las propiedades del componente.
+ * @param {boolean} props.darkMode - Estado actual del modo oscuro.
+ * @param {Function} props.toggleDarkMode - Función para alternar el modo oscuro.
+ * @returns {JSX.Element} La barra de navegación superior.
+ */
 const Header = ({ darkMode, toggleDarkMode }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  /** @type {boolean} Indica si el usuario actual tiene rol de administrador */
   const isAdmin = user?.role === 'admin';
+  /** @type {[boolean, Function]} Estado para controlar la apertura del menú en móviles */
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  /** Cierra el menú hamburguesa */
   const closeMenu = () => setIsMenuOpen(false);
 
+  /** Cierra la sesión del usuario y cierra el menú hamburguesa */
   const handleLogout = () => {
     logout();
     closeMenu();
@@ -109,7 +131,14 @@ const Header = ({ darkMode, toggleDarkMode }) => {
   );
 };
 
+/**
+ * Componente de pie de página (Footer) de la aplicación.
+ * Muestra información de copyright, crédito al autor y enlaces legales.
+ * 
+ * @returns {JSX.Element} El pie de página.
+ */
 const Footer = () => {
+  /** @type {number} Año actual para el aviso de copyright */
   const currentYear = new Date().getFullYear();
 
   return (
@@ -132,14 +161,26 @@ const Footer = () => {
   );
 };
 
+/**
+ * Componente raíz de la aplicación.
+ * Gestiona el enrutamiento global, el estado del modo oscuro, la autenticación
+ * y la lógica principal de compra de módulos.
+ * 
+ * @returns {JSX.Element} La estructura principal de la aplicación con Providers, Rutas y Layout.
+ */
 export default function App() {
   const { user, loading } = useAuth();
   const navigate = useNavigate(); 
 
+  /** @type {[boolean, Function]} Estado del modo oscuro, inicializado desde localStorage */
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('darkMode') === 'true';
   });
 
+  /**
+   * Efecto secundario que aplica la clase 'dark' al elemento HTML raíz
+   * y persiste la preferencia del modo oscuro en localStorage.
+   */
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -149,11 +190,20 @@ export default function App() {
     localStorage.setItem('darkMode', darkMode);
   }, [darkMode]);
 
+  /** Alterna el estado del modo oscuro */
   const toggleDarkMode = () => setDarkMode(!darkMode);
 
   if (loading) return <div className="p-10 text-center text-gray-500 dark:text-gray-300">Cargando aplicación...</div>;
   if (!user) return <Login />;
 
+  /**
+   * Maneja el proceso de compra de un módulo.
+   * Añade el módulo a las compras del usuario, muestra una notificación y redirige al perfil.
+   * 
+   * @param {Object} module - Los datos del módulo a comprar.
+   * @param {string} module.id - El ID del módulo.
+   * @returns {Promise<void>}
+   */
   const handlePurchase = async (module) => {
     await ModuleService.addPurchase(user.uid, module.id);
     toast.success("¡Pago completado! El módulo es tuyo.");
