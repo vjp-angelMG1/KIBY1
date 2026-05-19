@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
               firestoreSynced = false; // La base de datos falló al crear
             }
           }
-        } catch (readError) {
+        } catch (readError) { 
           console.error("Error leyendo el documento del usuario en Firestore:", readError);
           firestoreSynced = false; // La base de datos falló al leer
           // No intentamos crear el documento si la lectura falló, probablemente la BD esté caída
