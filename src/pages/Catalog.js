@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ModuleService } from "../services/dataService";
+import { ModuleService } from "../services/data";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 

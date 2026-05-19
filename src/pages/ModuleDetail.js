@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ModuleService } from "../services/dataService";
+import { ModuleService } from "../services/data";
 import { useAuth } from "../context/AuthContext";
 import Button from "../components/ui/Button";
 

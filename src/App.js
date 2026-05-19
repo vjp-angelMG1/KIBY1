@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
-import { ModuleService } from "./services/dataService";
+import { ModuleService } from "./services/data";
 import Login from "./pages/Login";
 import Catalog from "./pages/Catalog";
 import CouponManager from "./pages/CouponManager";

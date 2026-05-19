@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { ModuleService } from "../services/dataService";
+import { ModuleService } from "../services/data";
 import toast from 'react-hot-toast';
 import Button from "../components/ui/Button";
 

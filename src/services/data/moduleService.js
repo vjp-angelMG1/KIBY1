@@ -1,13 +1,16 @@
-import { db } from "./authService";
+import { db } from "../authService";
 import { 
   collection, getDocs, addDoc, updateDoc, deleteDoc, 
   doc, getDoc, query, where 
 } from "firebase/firestore";
 
-// --- MÓDULOS ---
-export const ModuleService = {
+/**
+ * Servicio para gestionar las operaciones CRUD de los módulos (cursos) y las compras en Firestore.
+ */
+const ModuleService = {
   /**
-   * Obtiene todos los módulos.
+   * Obtiene todos los módulos de la base de datos.
+   * @returns {Promise<Array<import('../../models/Module').Module>>} Un array de objetos con los datos de los módulos.
    */
   getAll: async () => {
     const collectionRef = collection(db, "modules");
@@ -16,7 +19,9 @@ export const ModuleService = {
   },
   
   /**
-   * Obtiene un módulo por su ID.
+   * Obtiene un módulo específico por su ID.
+   * @param {string} moduleId - El ID del módulo a buscar.
+   * @returns {Promise<import('../../models/Module').Module | null>} El objeto del módulo o null si no existe.
    */
   getById: async (moduleId) => {
     const docRef = doc(db, "modules", moduleId);
@@ -25,7 +30,10 @@ export const ModuleService = {
   },
   
   /**
-   * Crea un nuevo módulo.
+   * Crea un nuevo módulo en la base de datos.
+   * Procesa los campos de formulario (imgList, features) para adaptarlos a la estructura de la BD.
+   * @param {Object} moduleData - Los datos del formulario de creación del módulo.
+   * @returns {Promise<void>}
    */
   create: async (moduleData) => {
     const defaultImageUrl = "https://placehold.co/600x400/161616/bf522b?text=Kiby+Course";
@@ -54,7 +62,9 @@ export const ModuleService = {
   },
   
   /**
-   * Actualiza un módulo existente.
+   * Actualiza un módulo existente en la base de datos.
+   * @param {Object} updatedData - Los datos actualizados (debe contener la propiedad 'id').
+   * @returns {Promise<void>}
    */
   update: async (updatedData) => {
     const { id, ...dataWithoutId } = updatedData;
@@ -77,13 +87,20 @@ export const ModuleService = {
   },
   
   /**
-   * Elimina un módulo.
+   * Elimina un módulo de la base de datos por su ID.
+   * @param {string} moduleId - El ID del módulo a eliminar.
+   * @returns {Promise<void>}
    */
   delete: async (moduleId) => {
     await deleteDoc(doc(db, "modules", moduleId));
   },
   
-  // --- COMPRAS ---
+  /**
+   * Añade un ID de módulo al array de compras de un usuario si no lo tenía ya.
+   * @param {string} userId - El ID del usuario que realiza la compra.
+   * @param {string} moduleId - El ID del módulo comprado.
+   * @returns {Promise<void>}
+   */
   addPurchase: async (userId, moduleId) => {
     const userDocRef = doc(db, "users", userId);
     const userDocSnap = await getDoc(userDocRef);
@@ -94,6 +111,11 @@ export const ModuleService = {
     }
   },
   
+  /**
+   * Obtiene los datos completos de los módulos que un usuario ha comprado.
+   * @param {string} userId - El ID del usuario.
+   * @returns {Promise<Array<import('../../models/Module').Module>>} Array de módulos comprados.
+   */
   getMyModules: async (userId) => {
     const userDocSnap = await getDoc(doc(db, "users", userId));
     const purchasedIds = userDocSnap.data()?.purchases || [];
@@ -103,6 +125,11 @@ export const ModuleService = {
     return allAvailableModules.filter(moduleItem => purchasedIds.includes(moduleItem.id));
   },
 
+  /**
+   * Obtiene los emails de los usuarios que han comprado un módulo específico.
+   * @param {string} moduleId - El ID del módulo a consultar.
+   * @returns {Promise<Array<string>>} Array de correos electrónicos.
+   */
   getBuyersForModule: async (moduleId) => {
     const purchaseQuery = query(collection(db, "users"), where("purchases", "array-contains", moduleId));
     const querySnapshot = await getDocs(purchaseQuery);
@@ -110,51 +137,4 @@ export const ModuleService = {
   }
 };
 
-// --- CUPONES ---
-export const CouponService = {
-  getAll: async () => {
-    const collectionRef = collection(db, "coupons");
-    const querySnapshot = await getDocs(collectionRef);
-    return querySnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
-  },
-  
-  create: async (couponCode, discountPercentage, imageUrl) => {
-    const finalImageUrl = imageUrl || `https://placehold.co/600x400/161616/bf522b?text=${couponCode}`;
-    const newCouponData = { 
-      code: couponCode, 
-      discount: parseFloat(discountPercentage) || 0, 
-      img: finalImageUrl, 
-      active: true, 
-      created: new Date() 
-    };
-    await addDoc(collection(db, "coupons"), newCouponData);
-  },
-  
-  delete: async (couponId) => {
-    await deleteDoc(doc(db, "coupons", couponId));
-  },
-  
-  toggleStatus: async (couponId) => {
-    const docRef = doc(db, "coupons", couponId);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      const currentStatus = docSnap.data().active;
-      await updateDoc(docRef, { active: !currentStatus });
-    }
-  },
-  
-  applyCoupon: async (inputCode) => {
-    const validationQuery = query(
-      collection(db, "coupons"), 
-      where("code", "==", inputCode), 
-      where("active", "==", true)
-    );
-    const querySnapshot = await getDocs(validationQuery);
-    
-    if (!querySnapshot.empty) {
-      const validCouponDoc = querySnapshot.docs[0];
-      return { id: validCouponDoc.id, ...validCouponDoc.data() };
-    }
-    return null;
-  }
-};
+export default ModuleService;

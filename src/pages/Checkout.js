@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CouponService } from "../services/dataService";
+import { CouponService } from "../services/data";
 import Button from "../components/ui/Button";
 import toast from 'react-hot-toast';
 
