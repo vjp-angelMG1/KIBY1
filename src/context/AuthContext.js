@@ -11,26 +11,44 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribeAuthListener = subscribeToAuthChanges(async (firebaseUser) => {
       if (firebaseUser) {
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        let userRole = 'user'; // Asumimos el rol por defecto
+        let firestoreSynced = true; // Bandera para saber si la BD está sincronizada
+
+        // 1. Intento de lectura del documento
         try {
-          const userDocRef = doc(db, 'users', firebaseUser.uid);
           const userDocSnap = await getDoc(userDocRef);
 
           if (userDocSnap.exists()) {
-            const userRole = userDocSnap.data()?.role || 'user';
-            setAuthenticatedUser({ ...firebaseUser, role: userRole });
+            // El documento existe, leemos el rol real
+            userRole = userDocSnap.data()?.role || 'user';
           } else {
-            // Crear ficha en Firestore si es la primera vez que entra
-            await setDoc(userDocRef, { 
-              email: firebaseUser.email, 
-              role: 'user', 
-              purchases: [] 
-            });
-            setAuthenticatedUser({ ...firebaseUser, role: 'user' });
+            // 2. El documento no existe, intentamos crearlo
+            try {
+              await setDoc(userDocRef, { 
+                email: firebaseUser.email, 
+                role: 'user', 
+                purchases: [] 
+              });
+              userRole = 'user'; // Se acaba de crear con este rol
+            } catch (createError) {
+              console.error("Error creando el documento del usuario en Firestore:", createError);
+              firestoreSynced = false; // La base de datos falló al crear
+            }
           }
-        } catch (error) {
-          console.error("Error leyendo/creando el usuario:", error);
-          setAuthenticatedUser({ ...firebaseUser, role: 'user' });
+        } catch (readError) {
+          console.error("Error leyendo el documento del usuario en Firestore:", readError);
+          firestoreSynced = false; // La base de datos falló al leer
+          // No intentamos crear el documento si la lectura falló, probablemente la BD esté caída
         }
+
+        // Establecemos el usuario con el rol y el estado de sincronización
+        setAuthenticatedUser({ 
+          ...firebaseUser, 
+          role: userRole, 
+          firestoreSynced // Añadimos esta propiedad para que la app sepa si hubo fallo
+        });
+
       } else {
         setAuthenticatedUser(null);
       }
