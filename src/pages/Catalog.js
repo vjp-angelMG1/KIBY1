@@ -4,13 +4,35 @@ import { ModuleService } from "../services/dataService";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 
+/**
+ * Componente de Catálogo de Módulos.
+ * Muestra una cuadrícula responsiva con todos los módulos disponibles.
+ * Cambia el comportamiento de los botones y etiquetas según si el usuario 
+ * es administrador o si ya ha adquirido el módulo.
+ * 
+ * @param {Object} props - Las propiedades del componente.
+ * @param {boolean} props.isAdmin - Indica si el usuario actual tiene rol de administrador.
+ * @param {Array<string>} props.userPurchases - Array de IDs de los módulos que el usuario ya ha comprado.
+ * @returns {JSX.Element} La vista del catálogo con skeleton loading y tarjetas de módulos.
+ */
 const Catalog = ({ isAdmin, userPurchases }) => {
+  /** @type {[Array<Object>, Function]} Lista de módulos obtenidos de la base de datos */
   const [catalogModules, setCatalogModules] = useState([]);
+  
+  /** @type {[boolean, Function]} Estado de carga inicial para mostrar el skeleton UI */
   const [isCatalogLoading, setIsCatalogLoading] = useState(true);
+  
+  /** @type {[Object, Function]} Registro de IDs de módulos cuya imagen falló al cargar */
   const [imageLoadErrors, setImageLoadErrors] = useState({});
+  
+  /** Hook de navegación de React Router para redirigir al detalle del módulo */
   const navigate = useNavigate();
 
   useEffect(() => {
+    /**
+     * Obtiene los datos de todos los módulos desde el servicio y actualiza el estado.
+     * @returns {Promise<void>}
+     */
     const fetchCatalogData = async () => {
       setIsCatalogLoading(true); 
       const fetchedModules = await ModuleService.getAll();
@@ -20,10 +42,17 @@ const Catalog = ({ isAdmin, userPurchases }) => {
     fetchCatalogData();
   }, []);
 
+  /**
+   * Maneja el error de carga de imágenes.
+   * Marca el ID del módulo para mostrar un fallback (letra inicial) en lugar de la imagen rota.
+   * 
+   * @param {string} moduleId - El ID del módulo cuya imagen falló.
+   */
   const handleImageLoadingError = (moduleId) => {
     setImageLoadErrors(previousErrors => ({ ...previousErrors, [moduleId]: true }));
   };
 
+  // Interfaz de carga (Skeleton) mientras se obtienen los datos
   if (isCatalogLoading) {
     return (
       <div>
@@ -57,8 +86,13 @@ const Catalog = ({ isAdmin, userPurchases }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {catalogModules.map(moduleItem => {
+          /** @type {boolean} Determina si el usuario actual ya compró este módulo */
           const isModuleOwned = userPurchases.includes(moduleItem.id);
+          
+          /** @type {boolean} Determina si el módulo es gratuito (precio 0) */
           const isModuleFree = moduleItem.price === 0;
+          
+          /** @type {boolean} Determina si la imagen de este módulo falló al cargar */
           const hasImageError = imageLoadErrors[moduleItem.id];
           
           return (

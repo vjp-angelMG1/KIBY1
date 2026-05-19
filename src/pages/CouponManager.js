@@ -4,22 +4,53 @@ import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 
+/**
+ * Gestor de Cupones.
+ * Muestra los cupones disponibles para los alumnos y un panel de administración
+ * para crear, eliminar y cambiar el estado de los cupones.
+ * 
+ * @param {Object} props - Las propiedades del componente.
+ * @param {boolean} props.isAdmin - Indica si el usuario actual es administrador.
+ * @returns {JSX.Element} La vista de cupones con la interfaz correspondiente según el rol.
+ */
 const CouponManager = ({ isAdmin }) => {
+  /** @type {[Array<Object>, Function]} Lista de cupones obtenidos de la base de datos */
   const [coupons, setCoupons] = useState([]);
+  
+  /** @type {[boolean, Function]} Controla la visibilidad del modal para crear cupones */
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  /** @type {[string, Function]} Estado del input 'Código' en el formulario de creación */
   const [code, setCode] = useState("");
+  
+  /** @type {[string, Function]} Estado del input 'Descuento' en el formulario de creación */
   const [discount, setDiscount] = useState("");
 
   useEffect(() => { loadCoupons(); }, []);
 
+  /**
+   * Obtiene todos los cupones de la base de datos y actualiza el estado.
+   * 
+   * @returns {Promise<void>}
+   */
   const loadCoupons = async () => {
     const data = await CouponService.getAll();
     setCoupons(data);
   };
 
+  /** Abre el modal de creación y reinicia los campos del formulario */
   const handleOpenModal = () => { setCode(""); setDiscount(""); setIsModalOpen(true); };
+  
+  /** Cierra el modal de creación */
   const handleCloseModal = () => { setIsModalOpen(false); };
 
+  /**
+   * Crea un nuevo cupón en la base de datos, recarga la lista y cierra el modal.
+   * Genera una imagen corporativa automática utilizando el código del cupón.
+   * 
+   * @param {React.FormEvent<HTMLFormElement>} e - Evento de envío del formulario.
+   * @returns {Promise<void>}
+   */
   const handleCreate = async (e) => {
     e.preventDefault();
     const finalImg = `https://placehold.co/600x400/161616/bf522b?text=${code}`;
@@ -28,15 +59,28 @@ const CouponManager = ({ isAdmin }) => {
     handleCloseModal();
   };
 
+  /**
+   * Elimina un cupón por su ID tras la confirmación del usuario y recarga la lista.
+   * 
+   * @param {string} id - El ID del cupón a eliminar.
+   * @returns {Promise<void>}
+   */
   const handleDelete = async (id) => {
     if(window.confirm("¿Eliminar este cupón?")) { await CouponService.delete(id); loadCoupons(); }
   };
 
+  /**
+   * Alterna el estado activo/inactivo de un cupón y recarga la lista.
+   * 
+   * @param {string} id - El ID del cupón a alternar.
+   * @returns {Promise<void>}
+   */
   const handleToggleStatus = async (id) => {
     await CouponService.toggleStatus(id);
     loadCoupons();
   };
 
+  /** @type {Array<Object>} Cupones filtrados: el admin ve todos, el alumno solo los activos */
   const displayedCoupons = isAdmin ? coupons : coupons.filter(c => c.active);
 
   return (
