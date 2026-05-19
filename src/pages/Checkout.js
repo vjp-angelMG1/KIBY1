@@ -175,7 +175,7 @@ const Checkout = ({ onPurchase, goBack }) => {
         
         <p className="text-center text-xs text-gray-400 mt-4">Pago 100% seguro. Simulación de compra.</p>
       </div>
-    </div>
+    </div>  
   );
 };
 
