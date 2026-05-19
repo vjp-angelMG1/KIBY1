@@ -18,7 +18,7 @@ export const FirebaseFirestore = getFirestore(FirebaseApp);
 
 // Alias para compatibilidad con el resto del código actual
 export const auth = FirebaseAuth;
-export const db = FirebaseFirestore;
+export const db = FirebaseFirestore; 
 
 // Funciones en camelCase
 export const loginWithEmailPassword = async (email, password) => {
