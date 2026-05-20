@@ -10,7 +10,7 @@ jest.mock('./pages/AdminPanel', () => () => <div>AdminPanelPage</div>);
 jest.mock('./pages/Profile', () => () => <div>ProfilePage</div>);
 jest.mock('./pages/Checkout', () => () => <div>CheckoutPage</div>);
 jest.mock('./pages/ModuleDetail', () => () => <div>ModuleDetailPage</div>);
-jest.mock('react-hot-toast', () => ({ Toaster: () => <div /> }));
+jest.mock('react-hot-toast', () => ({ Toaster: () => <div /> })); 
 
 const { useAuth } = require('./context/AuthContext');
 
