@@ -48,7 +48,7 @@ src/
 ├── App.js          # Enrutamiento y layout principal
 └── index.css       # Estilos globales y directivas Tailwind
 
- # **⚙️ Scripts Disponibles**
+ # **⚙️ Scripts Disponibles** 
 En npm start
 Ejecute la aplicación en modo desarrollo. abre
 http://localhost:3000 para verla en el navegador. La página se recargará
