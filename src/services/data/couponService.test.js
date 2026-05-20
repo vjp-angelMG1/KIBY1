@@ -19,7 +19,7 @@ jest.mock('.', () => ({
 
 // Importamos los mocks para poder cambiar sus valores en cada test
 import { useAuth } from '../../context/AuthContext';
-import { CouponService } from '.';
+import { CouponService } from '.';  
 
 describe('CouponManager (Test de Integración)', () => {
   
