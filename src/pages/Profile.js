@@ -5,7 +5,7 @@ import { ModuleService } from "../services/data";
 import toast from 'react-hot-toast';
 import Button from "../components/ui/Button";
 
-const UserProfile = () => {   
+const UserProfile = () => {
   const { user, logout } = useAuth();
   const [myModules, setMyModules] = useState([]);
   const navigate = useNavigate(); // Usamos navigate para movermos entre páginas
