@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import ModuleDetail from './ModuleDetail';
 
-jest.mock('../services/data', () => ({ ModuleService: { getAll: jest.fn() } }));
+jest.mock('../services/data', () => ({ ModuleService: { getAll: jest.fn() } }));  
 jest.mock('../context/AuthContext', () => ({ useAuth: jest.fn() }));
 jest.mock('react-router-dom', () => ({ useParams: () => ({ moduloId: 'mod1' }), useNavigate: () => jest.fn() }));
 
