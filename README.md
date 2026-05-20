@@ -4,16 +4,16 @@ Kiby es una plataforma de e-learning moderna y responsiva construida con React y
 ## 🚀 Instalación y Puesta en Marcha
 Sigue estos pasos para ejecutar el proyecto en tu máquina local:
 
-1. Clonar el repositorio
+### 1. Clonar el repositorio
 bash
 
 git clone <url-del-repositorio>
 cd kiby
-2. Instalar dependencias
+### 2. Instalar dependencias
 bash
 
 npm install
-3. Configurar Firebase
+### 3. Configurar Firebase
 El proyecto requiere credenciales de Firebase para funcionar. Por seguridad, estas credenciales no deben subirse al control de versiones.
 
 ## Crea un proyecto en Firebase Console.
@@ -31,7 +31,7 @@ REACT_APP_FIREBASE_MESSAGING_SENDER_ID=tu_sender_id
 REACT_APP_FIREBASE_APP_ID=tu_app_id
 (Nota: Estas variables son leídas automáticamente en src/services/authService.js)
 
-4. Ejecutar la aplicación
+### 4. Ejecutar la aplicación
 bash
 
 npm start
@@ -61,13 +61,13 @@ src/
 └── index.css       # Estilos globales y directivas de Tailwind CSS
 ⚙️ Funcionalidades Principales
 ## 🔐 Autenticación completa: Registro e inicio de sesión con Firebase Auth.
-🛒 Sistema de compras: Carrito, checkout y persistencia de compras en Firestore.
-🎟️ Cupones de descuento: Validación en tiempo real contra la base de datos.
-🛡️ Panel de Administración: Gestión de cursos, cupones y visualización de compradores (Rutas protegidas).
-🌙 Modo Oscuro: Soporte completo para tema claro/oscuro con persistencia en localStorage.
-📱 Diseño Responsive: Menú hamburguesa y diseño adaptado para móviles y tablets usando Tailwind CSS.
-📝 Autocompletado JSDoc: Tipado de datos integrado mediante @typedef para un desarrollo más rápido y seguro.
-💾 Notas sobre Firestore (Base de Datos)
+* 🛒 Sistema de compras: Carrito, checkout y persistencia de compras en Firestore.
+* 🎟️ Cupones de descuento: Validación en tiempo real contra la base de datos.
+* 🛡️ Panel de Administración: Gestión de cursos, cupones y visualización de compradores (Rutas protegidas).
+* 🌙 Modo Oscuro: Soporte completo para tema claro/oscuro con persistencia en localStorage.
+* 📱 Diseño Responsive: Menú hamburguesa y diseño adaptado para móviles y tablets usando Tailwind CSS.
+* 📝 Autocompletado JSDoc: Tipado de datos integrado mediante @typedef para un desarrollo más rápido y seguro.
+## 💾 Notas sobre Firestore (Base de Datos)
 A diferencia de versiones anteriores que usaban LocalStorage, toda la persistencia de datos ahora vive en Cloud Firestore.
 
 Para que la aplicación funcione correctamente en tu entorno de desarrollo, asegúrate de tener creadas las siguientes colecciones en tu base de datos de Firestore:
@@ -90,7 +90,22 @@ Optimiza el código y lo minimiza para obtener el mejor rendimiento. Tu aplicaci
 
 npm run eject
 Nota: esta es una operación irreversible. Si no estás satisfecho con la herramienta de compilación y las opciones de configuración, puedes expulsar en cualquier momento. Te proporcionará control total sobre los archivos de configuración (Webpack, Babel, ESLint, etc).
+## 🧪 Pruebas (Testing)
+El proyecto incluye pruebas unitarias y de integración utilizando Jest y React Testing Library, garantizando que la lógica de negocio y la interfaz de usuario funcionen correctamente.
 
+Pruebas Unitarias: Validan la lógica aislada de los servicios (ej. moduleService.js, couponService.js) mockeando las llamadas a Firebase para no afectar la base de datos real.
+Pruebas de Integración: Renderizan componentes completos (ej. Catalog.js, CouponManager.js) simulando las respuestas de los servicios y las interacciones del usuario (clics, formularios).
+Los archivos de test se encuentran junto a los archivos fuente con la extensión .test.js (ej. couponService.test.js).
+
+Comandos de Testing
+En el directorio del proyecto, puedes ejecutar:
+
+npm test
+Ejecuta el runner de pruebas en modo interactivo (watch).
+Por defecto, ejecutará los tests relacionados con los archivos modificados. Presiona a en la consola para ejecutar todos los tests.
+
+npm test -- --coverage
+Ejecuta todos los tests y genera un informe de cobertura de código, mostrando qué porcentaje de tu aplicación está siendo testeado.
 ## 🌐 Despliegue
 La forma más sencilla de poner la aplicación en producción es utilizando Vercel o Netlify:
 
