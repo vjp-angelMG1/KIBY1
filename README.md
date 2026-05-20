@@ -97,4 +97,4 @@ La forma más sencilla de poner la aplicación en producción es utilizando Verc
 Sube tu código actualizado a tu repositorio de GitHub.
 Conecta tu repositorio en Vercel o Netlify.
 ¡Importante! Ve a la configuración de "Environment Variables" en tu plataforma de despliegue y añade todas las variables de tu archivo .env.local (REACT_APP_FIREBASE_API_KEY, etc.).
-¡Despliega!
+¡Despliega! 
